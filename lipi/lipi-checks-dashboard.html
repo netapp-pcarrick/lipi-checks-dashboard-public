@@ -474,7 +474,11 @@
       const backlogCount = data.filter(r => (r.Status || '').trim() === 'Backlog').length;
       const iceboxCount = data.filter(r => (r.Status || '').trim() === 'Icebox').length;
       const discussionCount = data.filter(r => (r.Status || '').trim() === 'Discussion').length;
-      const totalIssuesCount = data.filter(r => (r.Status || '').trim() !== 'Discussion' && !!issueUrlFromRow(r)).length;
+      const totalIssuesCount = data.filter(r => {
+        const status = (r.Status || '').trim();
+        if (status === 'Discussion') return false;
+        return issueTypeValue(r).toLowerCase() !== 'linter requirements';
+      }).length;
       const openCount = data.filter(r => stateValue(r) === 'Open').length;
       const closedCount = total - openCount;
       const missingAssigneeCount = data.filter(r => {
