@@ -466,6 +466,25 @@
       return 0;
     }
 
+    function compareSpecialSortValues(a, b, key, tableName) {
+      const av = valueForKey(a, key).trim();
+      const bv = valueForKey(b, key).trim();
+
+      if (tableName === 'main') {
+        const aDashRank = av === '—' ? 0 : 1;
+        const bDashRank = bv === '—' ? 0 : 1;
+        if (aDashRank !== bDashRank) return aDashRank - bDashRank;
+      }
+
+      if (tableName === 'discussion' && key === 'backlog') {
+        const aNoRank = av === 'No' ? 0 : 1;
+        const bNoRank = bv === 'No' ? 0 : 1;
+        if (aNoRank !== bNoRank) return aNoRank - bNoRank;
+      }
+
+      return 0;
+    }
+
     function compareByIssueType(a, b, primaryKey = '') {
       if (primaryKey === 'issueType') return 0;
       return compareValues(a, b, 'issueType');
@@ -563,6 +582,8 @@
             idRank(a.r) - idRank(b.r) ||
             a.index - b.index;
         }
+        const specialCmp = compareSpecialSortValues(a.r, b.r, sortState.key, 'main');
+        if (specialCmp !== 0) return specialCmp;
         const cmp = compareValues(a.r, b.r, sortState.key);
         if (cmp !== 0) return sortState.direction === 'asc' ? cmp : -cmp;
         const issueTypeCmp = compareByIssueType(a.r, b.r, sortState.key);
@@ -632,6 +653,8 @@
       const decoratedDiscussion = discussionRows.map((r, index) => ({ r, index }));
       decoratedDiscussion.sort((a, b) => {
         if (!sortStateDisc.key) return stateRank(a.r) - stateRank(b.r) || compareByIssueType(a.r, b.r) || a.index - b.index;
+        const specialCmp = compareSpecialSortValues(a.r, b.r, sortStateDisc.key, 'discussion');
+        if (specialCmp !== 0) return specialCmp;
         const cmp = compareValues(a.r, b.r, sortStateDisc.key);
         if (cmp !== 0) return sortStateDisc.direction === 'asc' ? cmp : -cmp;
         return compareByIssueType(a.r, b.r, sortStateDisc.key) || stateRank(a.r) - stateRank(b.r) || a.index - b.index;
