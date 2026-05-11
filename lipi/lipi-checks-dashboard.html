@@ -582,15 +582,15 @@
       let discussionRows = filtered.filter(r => (r.Status || '').trim() === 'Discussion');
 
       discussionRows = discussionRows.filter(r => {
-        const idFilter = (columnFiltersDiscussion.id.value || '').trim().toLowerCase();
-        const titleFilter = (columnFiltersDiscussion.title.value || '').trim().toLowerCase();
-        const statusFilterDisc = (columnFiltersDiscussion.status.value || '').trim();
-        const issueTypeFilterDisc = (columnFiltersDiscussion.issueType.value || '').trim().toLowerCase();
-        const stateFilterDisc = (columnFiltersDiscussion.state.value || '').trim();
-        const descFilter = (columnFiltersDiscussion.description.value || '').trim().toLowerCase();
-        const authorFilter = (columnFiltersDiscussion.author.value || '').trim().toLowerCase();
-        const sourceFilter = (columnFiltersDiscussion.source.value || '').trim().toLowerCase();
-        const backlogFilter = (columnFiltersDiscussion.backlog.value || '').trim().toLowerCase();
+        const idFilter = (discColumnFilters.id.value || '').trim().toLowerCase();
+        const titleFilter = (discColumnFilters.title.value || '').trim().toLowerCase();
+        const statusFilterDisc = (discColumnFilters.status.value || '').trim();
+        const issueTypeFilterDisc = (discColumnFilters.issueType.value || '').trim().toLowerCase();
+        const stateFilterDisc = (discColumnFilters.state.value || '').trim();
+        const descFilter = (discColumnFilters.description.value || '').trim().toLowerCase();
+        const authorFilter = (discColumnFilters.author.value || '').trim().toLowerCase();
+        const sourceFilter = (discColumnFilters.source.value || '').trim().toLowerCase();
+        const backlogFilter = (discColumnFilters.backlog.value || '').trim().toLowerCase();
         const state = stateValue(r);
 
         if (idFilter && !valueForKey(r, 'id').toLowerCase().includes(idFilter)) return false;
@@ -607,9 +607,9 @@
 
       const decoratedDiscussion = discussionRows.map((r, index) => ({ r, index }));
       decoratedDiscussion.sort((a, b) => {
-        if (!sortStateDiscussion.key) return stateRank(a.r) - stateRank(b.r) || a.index - b.index;
-        const cmp = compareValues(a.r, b.r, sortStateDiscussion.key);
-        if (cmp !== 0) return sortStateDiscussion.direction === 'asc' ? cmp : -cmp;
+        if (!sortStateDisc.key) return stateRank(a.r) - stateRank(b.r) || a.index - b.index;
+        const cmp = compareValues(a.r, b.r, sortStateDisc.key);
+        if (cmp !== 0) return sortStateDisc.direction === 'asc' ? cmp : -cmp;
         return stateRank(a.r) - stateRank(b.r) || a.index - b.index;
       });
       discussionRows = decoratedDiscussion.map(item => item.r);
