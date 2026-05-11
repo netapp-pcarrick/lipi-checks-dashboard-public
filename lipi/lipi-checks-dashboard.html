@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lipi Checks Dashboard</title>
+  <style>
+    :root {
+      --bg: #f7f7f2;
+      --paper: #fffdf8;
+      --ink: #1f1f1b;
+      --muted: #57574f;
+      --line: #d6d4c8;
+      --accent: #1d5f73;
+      --implemented: #1f7a4d;
+      --backlog: #a15c00;
+      --icebox: #1f5ca1;
+      --discussion: #6d4aa0;
+      --rejected: #9a1a1a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 90% -10%, #d9efe5 0%, transparent 60%),
+        radial-gradient(900px 500px at -10% 0%, #f9e6cf 0%, transparent 55%),
+        var(--bg);
+    }
+    .wrap { max-width: 1440px; margin: 0 auto; padding: 24px; }
+    .hero {
+      background: linear-gradient(120deg, #0f3f4f, #1d5f73 60%, #2e7489);
+      color: white;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 12px 30px rgba(13,49,61,.25);
+    }
+    .hero h1 { margin: 0 0 8px; font-size: clamp(1.4rem, 2.8vw, 2.2rem); letter-spacing: .2px; }
+    .hero p { margin: 6px 0; opacity: .94; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 16px; text-align: center; }
+    .stats-secondary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 12px; text-align: center; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 14px; box-shadow: 0 4px 12px rgba(0,0,0,.06); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .stat-value { font-size: 1.6rem; font-weight: 700; margin-top: 2px; color: #1f1f1b; }
+    .state-hint { margin-left: 6px; font-size: .78rem; }
+    .state-bad { color: #9a1a1a; font-weight: 700; }
+    .state-good { color: #1f7a4d; font-weight: 700; }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .8rem; color: white; }
+    .controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin: 18px 0 12px; }
+    input, select {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+      background: #fff; color: var(--ink); font: inherit;
+    }
+    .filters { display:flex; gap:8px; align-items:center; }
+    table { width: 100%; min-width: 1280px; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    thead th { text-align: left; background: #f0eee5; padding: 10px; font-size: .88rem; position: sticky; top: 0; z-index: 1; }
+    thead tr.filter-row th { background: #f7f5ec; padding: 8px; top: 39px; z-index: 1; }
+    thead tr.filter-row input, thead tr.filter-row select {
+      width: 100%;
+      padding: 6px 8px;
+      font-size: .8rem;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+    }
+    .sort-btn {
+      all: unset;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      color: inherit;
+    }
+    .sort-indicator { color: var(--muted); font-size: .76rem; }
+    thead th:nth-child(8), tbody td:nth-child(8) {
+      min-width: 260px;
+      white-space: nowrap;
+    }
+    tbody td { padding: 10px; border-top: 1px solid #eceae0; font-size: .9rem; vertical-align: top; text-align: center; }
+    tbody tr:hover { background: #faf9f4; }
+    .status-Implemented { color: var(--implemented); font-weight: 700; }
+    .status-Backlog { color: var(--backlog); font-weight: 700; }
+    .status-Icebox { color: var(--icebox); font-weight: 700; }
+    .status-Discussion { color: var(--discussion); font-weight: 700; }
+    .status-Rejected { color: var(--rejected); font-weight: 700; }
+    .src-badge {
+      display: inline-block; padding: 2px 7px; border-radius: 6px;
+      font-size: .76rem; font-family: monospace; font-weight: 600;
+      white-space: nowrap;
+    }
+    .src-production { background: #e6f4ee; color: #1f7a4d; }
+    .src-issue      { background: #fff3e0; color: #a15c00; }
+    .src-discussion { background: #f3eeff; color: #6d4aa0; }
+    .backlog-badge {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: .74rem;
+      font-weight: 700;
+      line-height: 1.4;
+      background: #e8f1f5;
+      color: #1d5f73;
+      border: 1px solid #bdd5df;
+      text-decoration: none;
+      margin: 0 2px;
+      white-space: nowrap;
+    }
+    .backlog-badge:hover { background: #dbeaf0; }
+    .small { color: var(--muted); font-size: .83rem; }
+    .stats-secondary .small { font-weight: 600; }
+    .stats-secondary .card:nth-child(1) .small { color: var(--accent); }
+    .stats-secondary .card:nth-child(2) .small { color: #6d4aa0; }
+    .stats-secondary .card:nth-child(3) .small { color: #1f5ca0; }
+    .stats-secondary .card:nth-child(4) .small { color: #9a1a1a; }
+    .stats-secondary .card:nth-child(5) .small { color: var(--implemented); }
+    .stats-secondary .card:nth-child(6) .small { color: #1f7a4d; }
+    .table-wrap { max-height: 68vh; overflow: auto; border-radius: 12px; }
+    .table-counts { margin: 8px 4px 0; color: var(--muted); font-size: .82rem; text-align: right; }
+    .footer { margin-top: 10px; color: var(--muted); font-size: .82rem; }
+    a { color: var(--accent); }
+    .generated-meta { color: #ffffff; opacity: .92; }
+    @media (max-width: 760px) {
+      .controls { grid-template-columns: 1fr; }
+      thead th:nth-child(5), tbody td:nth-child(5), thead th:nth-child(8), tbody td:nth-child(8) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Lipi Checks Program Dashboard</h1>
+      <p>Shareable inventory view for implemented checks, backlog, icebox, and discussion requirements.</p>
+      <p class="small generated-meta">Generated: 2026-05-11 14:54| Source: lipi/lipi-checks-complete-inventory.csv</p>
+      <div class="stats">
+        <div class="card"><div class="small">Total Items</div><div id="meta-total-items" class="stat-value">0</div></div>
+        <div class="card"><span class="pill" style="background:var(--rejected)">Total Bugs</span><div id="meta-total-bugs" class="stat-value">0</div></div>
+        <div class="card"><span class="pill" style="background:var(--discussion)">Discussion</span><div id="meta-discussion-top" class="stat-value">0</div></div>
+        <div class="card"><span class="pill" style="background:var(--icebox)">Icebox</span><div id="meta-icebox" class="stat-value">0</div></div>
+        <div class="card"><span class="pill" style="background:var(--backlog)">Backlog</span><div id="meta-backlog" class="stat-value">0</div></div>
+        <div class="card"><span class="pill" style="background:var(--implemented)">Implemented</span><div id="meta-implemented" class="stat-value">0</div></div>
+      </div>
+      <div class="stats-secondary">
+        <div class="card"><div class="small">State <span class="state-hint"><span class="state-bad">Open</span> / <span class="state-good">Closed</span></span></div><div id="meta-state" class="stat-value">0 / 0</div></div>
+        <div class="card"><div class="small">Missing Assignee</div><div id="meta-missing-assignee" class="stat-value">0</div></div>
+        <div class="card"><div class="small">Requires Further Discussion</div><div id="meta-discussion" class="stat-value">0</div></div>
+        <div class="card"><div class="small">To Develop</div><div id="meta-to-develop" class="stat-value">0</div></div>
+        <div class="card"><div class="small">Implemented (No GH#)</div><div id="meta-no-gh" class="stat-value">0</div></div>
+        <div class="card"><div class="small">Implemented and Closed</div><div id="meta-implemented-closed" class="stat-value">0</div></div>
+      </div>
+    </section>
+
+    <div class="controls">
+      <input id="search" placeholder="Search title, description, labels, author, issue/discussion #" />
+      <div class="filters">
+        <select id="statusFilter">
+          <option value="">All statuses</option>
+          <option>Implemented</option>
+          <option>Backlog</option>
+          <option>Icebox</option>
+          <option>Discussion</option>
+          <option>Rejected</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th><button class="sort-btn" data-sort-key="id" aria-label="Sort by GH#">GH# <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="title" aria-label="Sort by Title">Title <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="status" aria-label="Sort by Status">Status <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="issueType" aria-label="Sort by Issue Type">Issue Type <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="state" aria-label="Sort by State">State <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="description" aria-label="Sort by Description">Description <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="author" aria-label="Sort by Author">Author <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="source" aria-label="Sort by Source">Source <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="backlog" aria-label="Sort by Backlog Linkage">Backlog Linkage <span class="sort-indicator">↕</span></button></th>
+          </tr>
+          <tr class="filter-row">
+            <th><input id="filter-id" placeholder="Filter GH#" /></th>
+            <th><input id="filter-title" placeholder="Filter title" /></th>
+            <th>
+              <select id="filter-status-col">
+                <option value="">All</option>
+                <option>Implemented</option>
+                <option>Backlog</option>
+                <option>Icebox</option>
+                <option>Discussion</option>
+                <option>Rejected</option>
+              </select>
+            </th>
+            <th><input id="filter-issue-type" placeholder="Filter issue type" /></th>
+            <th>
+              <select id="filter-state-col">
+                <option value="">All</option>
+                <option>Open</option>
+                <option>Closed</option>
+              </select>
+            </th>
+            <th><input id="filter-description" placeholder="Filter description" /></th>
+            <th><input id="filter-author" placeholder="Filter author" /></th>
+            <th><input id="filter-source" placeholder="Filter source" /></th>
+            <th><input id="filter-backlog" placeholder="Filter backlog" /></th>
+          </tr>
+        </thead>
+        <tbody id="rows-main"></tbody>
+      </table>
+      <p id="main-row-counts" class="table-counts">Total Rows: 0 | Total Rows Selected: 0</p>
+    </div>
+
+    <div class="table-wrap" style="margin-top: 16px;">
+      <table>
+        <thead>
+          <tr>
+            <th><button class="sort-btn-disc" data-sort-key="id" aria-label="Sort by Discus#">Discus# <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn-disc" data-sort-key="title" aria-label="Sort by Title">Title <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn-disc" data-sort-key="status" aria-label="Sort by Status">Status <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn-disc" data-sort-key="issueType" aria-label="Sort by Issue Type">Issue Type <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn-disc" data-sort-key="state" aria-label="Sort by State">State <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn-disc" data-sort-key="description" aria-label="Sort by Description">Description <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn-disc" data-sort-key="author" aria-label="Sort by Author">Author <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn-disc" data-sort-key="source" aria-label="Sort by Source">Source <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn-disc" data-sort-key="backlog" aria-label="Sort by Backlog Linkage">Backlog Linkage <span class="sort-indicator">↕</span></button></th>
+          </tr>
+          <tr class="filter-row">
+            <th><input id="filter-id-disc" placeholder="Filter Discus#" /></th>
+            <th><input id="filter-title-disc" placeholder="Filter title" /></th>
+            <th>
+              <select id="filter-status-col-disc">
+                <option value="">All</option>
+                <option>Implemented</option>
+                <option>Backlog</option>
+                <option>Icebox</option>
+                <option>Discussion</option>
+                <option>Rejected</option>
+              </select>
+            </th>
+            <th><input id="filter-issue-type-disc" placeholder="Filter issue type" /></th>
+            <th>
+              <select id="filter-state-col-disc">
+                <option value="">All</option>
+                <option>Open</option>
+                <option>Closed</option>
+              </select>
+            </th>
+            <th><input id="filter-description-disc" placeholder="Filter description" /></th>
+            <th><input id="filter-author-disc" placeholder="Filter author" /></th>
+            <th><input id="filter-source-disc" placeholder="Filter source" /></th>
+            <th><input id="filter-backlog-disc" placeholder="Filter backlog" /></th>
+          </tr>
+        </thead>
+        <tbody id="rows-discussion"></tbody>
+      </table>
+      <p id="discussion-row-counts" class="table-counts">Total Rows: 0 | Total Rows Selected: 0</p>
+    </div>
+
+    <p class="footer">Tip: save this HTML and share directly, or publish it via GitHub Pages for a URL-based dashboard.</p>
+  </div>
+
+  <script>
+    const data = [{"Issue/Disc #": "\u2014", "Title": "Parsing error in Jekyll front matter", "Description": "Jekyll front matter errors and omissions", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Missing Jekyll front matter block", "Description": "Jekyll front matter errors and omissions", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Invalid Jekyll front matter value", "Description": "Jekyll front matter errors and omissions", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Missing Jekyll front matter key", "Description": "Jekyll front matter errors and omissions", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Permalink mismatch", "Description": "Mismatch between permalink and file name", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "No lead paragraph", "Description": "Lead paragraph errors and omissions", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "78", "Title": "Multiple lead paragraphs", "Description": "Lead paragraph errors and omissions", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Area linter", "Author": "Megan", "Created": "2024-01-16", "Closed": "2024-02-02", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/78"}, {"Issue/Disc #": "\u2014", "Title": "Passthrough blocks are prohibited", "Description": "Passthrough block errors", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "YAML parsing error", "Description": "YAML parsing error", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Missing file", "Description": "File existence errors", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Deprecated file", "Description": "File existence errors", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Invalid YAML key value", "Description": "YAML file contains an invalid key value", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Missing YAML key", "Description": "YAML file is missing a required key", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "72", "Title": "Deprecated YAML key", "Description": "YAML file contains a deprecated key", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2023-10-10", "Closed": "2023-10-17", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/72"}, {"Issue/Disc #": "98", "Title": "Unexpected YAML key", "Description": "YAML file contains an unexpected key", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-05-16", "Closed": "2024-06-12", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/98"}, {"Issue/Disc #": "\u2014", "Title": "Invalid sidebar structure", "Description": "Sidebar design problems", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "92", "Title": "Image file size alert", "Description": "Problems with image files", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-05-03", "Closed": "2024-08-16", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/92"}, {"Issue/Disc #": "92", "Title": "Image file size error", "Description": "Problems with image files", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-05-03", "Closed": "2024-08-16", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/92"}, {"Issue/Disc #": "92", "Title": "Image file size warning", "Description": "Problems with image files", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-05-03", "Closed": "2024-08-16", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/92"}, {"Issue/Disc #": "25", "Title": "Missing alt text", "Description": "Missing alt text (accessible description)", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter; Area accessibility", "Author": "Brian Norberg", "Created": "2022-12-22", "Closed": "2023-04-28", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/25"}, {"Issue/Disc #": "86", "Title": "Missing common include", "Description": "Legal notices errors", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-02-05", "Closed": "2024-09-03", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/86"}, {"Issue/Disc #": "86", "Title": "Missing legal notices", "Description": "Legal notices errors", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-02-05", "Closed": "2024-09-03", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/86"}, {"Issue/Disc #": "86", "Title": "No sidebar entry for legal notices", "Description": "Legal notices errors", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-02-05", "Closed": "2024-09-03", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/86"}, {"Issue/Disc #": "82", "Title": "Missing imagesdir entry", "Description": "Problem with imagesdir attribute", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-01-30", "Closed": "2024-09-09", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/82"}, {"Issue/Disc #": "82", "Title": "Empty imagesdir entry", "Description": "Problem with imagesdir attribute", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-01-30", "Closed": "2024-09-09", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/82"}, {"Issue/Disc #": "82", "Title": "Notation error in imagesdir entry", "Description": "Problem with imagesdir attribute", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-01-30", "Closed": "2024-09-09", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/82"}, {"Issue/Disc #": "82", "Title": "Incorrect path in imagesdir entry", "Description": "Problem with imagesdir attribute", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-01-30", "Closed": "2024-09-09", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/82"}, {"Issue/Disc #": "86", "Title": "Legal notices file found in family repo", "Description": "Legal notices errors", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-02-05", "Closed": "2024-09-03", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/86"}, {"Issue/Disc #": "86", "Title": "Legal notices entry found in family sidebar", "Description": "Legal notices errors", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-02-05", "Closed": "2024-09-03", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/86"}, {"Issue/Disc #": "84", "Title": "Prohibited file", "Description": "Prohibited file check", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-01-31", "Closed": "2024-05-21", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/84"}, {"Issue/Disc #": "115", "Title": "Undefined sidebar fragment", "Description": "Sidebar definition problems", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Area infrastructure", "Author": "Brian Norberg", "Created": "2024-08-05", "Closed": "2024-09-23", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/115"}, {"Issue/Disc #": "115", "Title": "Unreferenced sidebar fragment", "Description": "Sidebar definition problems", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Area infrastructure", "Author": "Brian Norberg", "Created": "2024-08-05", "Closed": "2024-09-23", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/115"}, {"Issue/Disc #": "\u2014", "Title": "Unbalanced admonition or example blocks", "Description": "Unbalanced AsciiDoc blocks", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Unbalanced fenced blocks", "Description": "Unbalanced AsciiDoc blocks", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Unbalanced listing or source blocks", "Description": "Unbalanced AsciiDoc blocks", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Unbalanced literal blocks", "Description": "Unbalanced AsciiDoc blocks", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Unbalanced passthrough or stem blocks", "Description": "Unbalanced AsciiDoc blocks", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Unbalanced quote or verse blocks", "Description": "Unbalanced AsciiDoc blocks", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Unbalanced sidebar blocks", "Description": "Unbalanced AsciiDoc blocks", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "\u2014", "Title": "Unbalanced table blocks", "Description": "Unbalanced AsciiDoc blocks", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "155", "Title": "Referenced search index does not exist", "Description": "Search indexing failure", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Need comms; Area linter", "Author": "Megan", "Created": "2025-06-11", "Closed": "2025-12-01", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/155"}, {"Issue/Disc #": "\u2014", "Title": "Deprecated landing page definition", "Description": "Landing page definition errors", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "54", "Title": "Too many links on landing page tile", "Description": "Landing page tile layout errors", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Brian Norberg", "Created": "2023-02-19", "Closed": "2024-06-06", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/54"}, {"Issue/Disc #": "53", "Title": "Too many tiles on landing page", "Description": "Landing page tile layout errors", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Brian Norberg", "Created": "2023-02-19", "Closed": "2024-06-17", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/53"}, {"Issue/Disc #": "79", "Title": "Image file not in media folder", "Description": "Problems with image files", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Area linter", "Author": "Megan", "Created": "2024-01-17", "Closed": "2024-07-22", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/79"}, {"Issue/Disc #": "79", "Title": "Unreferenced image file", "Description": "Problems with image files", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Area linter", "Author": "Megan", "Created": "2024-01-17", "Closed": "2024-07-22", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/79"}, {"Issue/Disc #": "49", "Title": "Sidebar entry is too deep", "Description": "Sidebar design problems", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Need docs; Area linter", "Author": "Brian Norberg", "Created": "2023-02-19", "Closed": "2024-07-12", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/49"}, {"Issue/Disc #": "\u2014", "Title": "Published with non-production framework", "Description": "Publishing framework", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "\u2014", "Author": "\u2014", "Created": "\u2014", "Closed": "\u2014", "Already In Backlog": "\u2014", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/blob/main/lib/jekyll-lipi/message.rb"}, {"Issue/Disc #": "161", "Title": "Unsupported special characters in jekyll frontmatter", "Description": "Unsupported characters in Jekyll frontmatter", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Area formatting", "Author": "Aksel Davis", "Created": "2025-11-13", "Closed": "2026-04-08", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/161"}, {"Issue/Disc #": "162", "Title": "Bad link syntax", "Description": "Bad link syntax", "Status": "Implemented", "Source": "Production (lib/jekyll-lipi/message.rb)", "Labels": "Area formatting", "Author": "Aksel Davis", "Created": "2026-01-22", "Closed": "2026-04-08", "Already In Backlog": "Yes \u2192 Implemented", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/162"}, {"Issue/Disc #": "173", "Title": "Add a new Lipi check \u2014 sidebar 'url' missing slash", "Description": "Alert when a `url:` value in sidebar or project YAML is missing a leading slash.", "Status": "Backlog", "Source": "jekyll-lipi issue", "Labels": "\u2014", "Author": "Megan", "Created": "2025-01-28", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/173"}, {"Issue/Disc #": "150", "Title": "Check and alert if file does not have an extension", "Description": "As an author, be notified when a file does not have an extension so that it can be corrected.", "Status": "Backlog", "Source": "jekyll-lipi issue", "Labels": "Need QA; Need docs; Area linter", "Author": "Megan", "Created": "2025-03-27", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/150"}, {"Issue/Disc #": "148", "Title": "Alert if block title used before table or admonition", "Description": "Alert when a block title is used immediately before a table or admonition, which does not work as expected.", "Status": "Backlog", "Source": "jekyll-lipi issue", "Labels": "Need QA; Need docs; Area linter", "Author": "Megan", "Created": "2025-02-25", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/148"}, {"Issue/Disc #": "146", "Title": "'pdf-filename' reported as unexpected yaml key in sidebar fragment", "Description": "`pdf-filename` set on first-level TOC entries (sidebar fragments) is incorrectly reported as an unexpected YAML key.", "Status": "Backlog", "Source": "jekyll-lipi issue", "Labels": "Area linter", "Author": "Megan", "Created": "2025-02-13", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/146"}, {"Issue/Disc #": "145", "Title": "Add 'type' to list of deprecated keys", "Description": "The deprecated key-value pair `type: solutions` needs to be flagged as deprecated as part of the named-only PDF feature.", "Status": "Backlog", "Source": "jekyll-lipi issue", "Labels": "Need QA; Need docs; Area linter", "Author": "Megan", "Created": "2025-01-08", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/145"}, {"Issue/Disc #": "144", "Title": "Add 'gen-type' to allowed key names in project.yml", "Description": "When the `gen-type` key is used for named-only PDF publishing, it should not be reported by Lipi as an unexpected key.", "Status": "Backlog", "Source": "jekyll-lipi issue", "Labels": "Need QA; Area linter", "Author": "Megan", "Created": "2025-01-06", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/144"}, {"Issue/Disc #": "143", "Title": "Check for new feature 'gen-type: named-only'", "Description": "Alert to errors and omissions in the `gen-type: named-only` project setting so that output is correct.", "Status": "Backlog", "Source": "jekyll-lipi issue", "Labels": "Need QA; Need docs; Need comms; Area linter", "Author": "Megan", "Created": "2024-12-19", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/143"}, {"Issue/Disc #": "135", "Title": "Check for unreferenced article files (.adoc)", "Description": "As an author, know about unreferenced articles so that they can be referenced or removed prior to publication.", "Status": "Backlog", "Source": "jekyll-lipi issue", "Labels": "Need QA; Need docs; Need comms; Area linter", "Author": "Megan", "Created": "2024-10-16", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/135"}, {"Issue/Disc #": "120", "Title": "Prevent platform relnotes keys from unexpected yaml key report", "Description": "Platform-level release notes introduced new YAML keys that are not yet accounted for in Lipi, causing false unexpected-key reports.", "Status": "Backlog", "Source": "jekyll-lipi issue", "Labels": "Need docs; Area linter", "Author": "Megan", "Created": "2024-08-21", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/120"}, {"Issue/Disc #": "83", "Title": "Check include references for syntax errors", "Description": "As an author, be notified when an include reference does not work so that published content is complete and correct.", "Status": "Backlog", "Source": "jekyll-lipi issue", "Labels": "Need docs; Need comms; Area linter", "Author": "Megan", "Created": "2024-01-30", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/83"}, {"Issue/Disc #": "80", "Title": "Check include files \u2014 location and lack of references", "Description": "As an author, be notified when an include file is not in its expected location or is not referenced.", "Status": "Backlog", "Source": "jekyll-lipi issue", "Labels": "Need docs; Need comms; Area linter", "Author": "Megan", "Created": "2024-01-17", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/80"}, {"Issue/Disc #": "77", "Title": "Report PDF filename collisions", "Description": "As an author, be notified when PDF titles are not unique so that the site does not have missing PDFs.", "Status": "Backlog", "Source": "jekyll-lipi issue", "Labels": "Need docs; Need comms; Area linter", "Author": "Megan", "Created": "2024-01-12", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/77"}, {"Issue/Disc #": "142", "Title": "Check to alert if preview server address found in run", "Description": "Alert authors to `review.docs.netapp.com` preview URLs in content so that they can be corrected before publication.", "Status": "Icebox", "Source": "jekyll-lipi issue", "Labels": "Status blocked; Need QA; Need docs; Need comms; Area linter", "Author": "Megan", "Created": "2024-12-09", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/142"}, {"Issue/Disc #": "139", "Title": "Check for obsolete url patterns", "Description": "Streamline notification to authors of outdated URL patterns so that they can more efficiently address them.", "Status": "Icebox", "Source": "jekyll-lipi issue", "Labels": "Status blocked; Need QA; Need docs; Area linter", "Author": "Megan", "Created": "2024-10-31", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/139"}, {"Issue/Disc #": "55", "Title": "Check for extra spaces/tabs before inline/leading notation", "Description": "As a writer, be informed when inline or leading notation is incorrectly specified so that it is applied correctly.", "Status": "Icebox", "Source": "jekyll-lipi issue", "Labels": "Status blocked; Need docs; Need comms; Area linter", "Author": "Brian Norberg", "Created": "2023-02-19", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/55"}, {"Issue/Disc #": "46", "Title": "Check for empty line before lists", "Description": "As a writer, be informed when an empty line is missing between a paragraph and the list that follows it.", "Status": "Icebox", "Source": "jekyll-lipi issue", "Labels": "Status blocked; Need docs; Need comms; Area linter", "Author": "Brian Norberg", "Created": "2023-02-18", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocOps/jekyll-lipi/issues/46"}, {"Issue/Disc #": "2306", "Title": "Lipi check \u2014 valid/invalid characters in AsciiDoc filenames/permalinks", "Description": "Validate AsciiDoc filenames/permalinks for valid characters (underscores)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Adam Newton", "Created": "2026-01-29", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/2306"}, {"Issue/Disc #": "2245", "Title": "Option for column search to be exact", "Description": "Lipi Report feature: exact-match column search", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2025-09-15", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/2245"}, {"Issue/Disc #": "2240", "Title": "Change to an in-house source-based ai-enhanced link checker", "Description": "Strategic: replace link checker with in-house AI-enhanced solution", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2025-09-09", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/2240"}, {"Issue/Disc #": "1939", "Title": "Check for hardcoded preview site urls", "Description": "Check for hardcoded preview site URLs (review.docs.netapp.com)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Aksel Davis", "Created": "2024-12-05", "Closed": "2024-12-09", "Already In Backlog": "Yes \u2192 #142", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1939"}, {"Issue/Disc #": "1798", "Title": "Improve filtering in Repository column on Runs page", "Description": "Lipi Report feature: exact-match filtering on Repository column", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Martin Houser", "Created": "2024-07-24", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1798"}, {"Issue/Disc #": "1711", "Title": "Lipi checks to protect against internal construct exposure/IP loss", "Description": "Security: detect internal constructs (storage keys, internal URLs)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Dave Bagwell", "Created": "2024-05-24", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1711"}, {"Issue/Disc #": "1620", "Title": "Alert if preview server address found in Adoc or YML files", "Description": "Check for preview server address (review.docs.netapp.com) in files", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "enhancement", "Author": "Megan", "Created": "2024-03-25", "Closed": "2024-12-09", "Already In Backlog": "Yes \u2192 #142", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1620"}, {"Issue/Disc #": "1519", "Title": "Check for sidebar target errors", "Description": "Check sidebar targets point to HTML files in generated site", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2024-01-20", "Closed": "\u2014", "Already In Backlog": "Partial", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1519"}, {"Issue/Disc #": "1506", "Title": "Check include resolution errors", "Description": "Check include statement path notation for errors", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2024-01-12", "Closed": "\u2014", "Already In Backlog": "Yes \u2192 #83", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1506"}, {"Issue/Disc #": "1291", "Title": "Check YAML files for AsciiDoc comment notation", "Description": "Check YAML files for incorrect AsciiDoc comment notation (// vs #)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-10-25", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1291"}, {"Issue/Disc #": "1281", "Title": "Check for stray non-content files in repo", "Description": "Check for stray system files (thumbs.db, .DS_Store, .VSCode)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-10-17", "Closed": "\u2014", "Already In Backlog": "Partial \u2192 #150", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1281"}, {"Issue/Disc #": "1280", "Title": "Check for blank line before or after title", "Description": "Check for blank lines before/after page title (AsciiDoc syntax)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-10-17", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1280"}, {"Issue/Disc #": "1279", "Title": "Check for search summaries over 160 characters (SEO)", "Description": "Flag search summaries over 160 characters (SEO truncation)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-10-17", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1279"}, {"Issue/Disc #": "1278", "Title": "Check for articles referenced multiple times in sidebar", "Description": "Check for articles referenced multiple times in sidebar", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-10-17", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1278"}, {"Issue/Disc #": "1276", "Title": "Check for missing blank line before start of list", "Description": "Check for missing blank line before list start", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-10-17", "Closed": "2024-01-12", "Already In Backlog": "Yes \u2192 #46", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1276"}, {"Issue/Disc #": "1275", "Title": "Check for long sentences", "Description": "Flag sentences with more than 32 words (style compliance)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-10-17", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1275"}, {"Issue/Disc #": "1274", "Title": "Check for absolute path notation in local links", "Description": "Check for absolute path URLs when relative notation should be used", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-10-17", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1274"}, {"Issue/Disc #": "1273", "Title": "Check the first sidebar entry in content repos", "Description": "Check first sidebar entry for consistency across repos", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-10-16", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1273"}, {"Issue/Disc #": "1265", "Title": "Check the number of headings in an article", "Description": "Check for more than 9 headings in an article", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-09-08", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1265"}, {"Issue/Disc #": "1264", "Title": "Check internal/external link notation", "Description": "Check internal/external link notation (new tab requirement)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-09-08", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1264"}, {"Issue/Disc #": "1263", "Title": "Check for manual use of font colors", "Description": "Check for manual font color overrides (accessibility issue)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-09-08", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1263"}, {"Issue/Disc #": "1262", "Title": "Check permalink file name length", "Description": "Check permalink/filename length (32 char recommended limit)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-09-08", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1262"}, {"Issue/Disc #": "1261", "Title": "Check HTML file name case", "Description": "Check HTML filenames are lowercase (no spaces)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-09-08", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1261"}, {"Issue/Disc #": "1260", "Title": "Check sidebar title length", "Description": "Check sidebar titles exceed 40 characters", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-09-08", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1260"}, {"Issue/Disc #": "1259", "Title": "Warn if harmony_enabled (localization) is missing", "Description": "Warn if harmony_enabled (localization) missing from project.yml", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-09-08", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1259"}, {"Issue/Disc #": "1258", "Title": "Warn about local mp4 files", "Description": "Warn about local mp4 files (use Panopto instead)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-09-08", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1258"}, {"Issue/Disc #": "1257", "Title": "Don't check framework links", "Description": "Don't report link errors for docs.netapp.com framework targets", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-09-11", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1257"}, {"Issue/Disc #": "1256", "Title": "Check heading depth in articles", "Description": "Check for heading depth exceeding 4 levels", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-09-11", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1256"}, {"Issue/Disc #": "1255", "Title": "Report section problem affecting combine_sidebar_section", "Description": "Report sidebar section problems affecting combine_sidebar_section", "Status": "Implemented", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-09-11", "Closed": "2024-10-14", "Already In Backlog": "Yes -> Implemented", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1255"}, {"Issue/Disc #": "1254", "Title": "Check for sequential block structures", "Description": "Check for sequential block structures (tables\u2192tables, images\u2192images)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-09-11", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1254"}, {"Issue/Disc #": "1253", "Title": "Check for incorrect continuation markers in lists", "Description": "Check for incorrect list continuation markers (+)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-09-11", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1253"}, {"Issue/Disc #": "1251", "Title": "Check for nested tables", "Description": "Check for nested tables (UX/accessibility/localization issue)", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Megan", "Created": "2023-10-13", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1251"}, {"Issue/Disc #": "1191", "Title": "Check for Panopto title attribute", "Description": "Check for Panopto video title attribute requirement", "Status": "Discussion", "Source": "docs-help discussion", "Labels": "\u2014", "Author": "Adam Newton", "Created": "2023-08-29", "Closed": "\u2014", "Already In Backlog": "No", "Link": "https://github.com/NetAppDocs/docs-help/discussions/1191"}];
+    const issueTypeByLink = {
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/78": "Bug",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/72": "Bug",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/98": "Bug",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/92": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/25": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/86": "Enhancement",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/82": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/84": "Enhancement",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/115": "Enhancement",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/155": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/54": "Enhancement",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/53": "Enhancement",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/79": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/49": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/161": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/162": "Enhancement",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/173": "Bug",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/150": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/148": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/146": "Bug",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/145": "Enhancement",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/144": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/143": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/135": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/120": "Bug",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/83": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/80": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/77": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/142": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/139": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/55": "Feature",
+      "https://github.com/NetAppDocOps/jekyll-lipi/issues/46": "Feature",
+      "https://github.com/NetAppDocs/docs-help/discussions/2306": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/2245": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/2240": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1939": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1798": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1711": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1620": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1519": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1506": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1291": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1281": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1280": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1279": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1278": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1276": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1275": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1274": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1273": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1265": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1264": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1263": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1262": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1261": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1260": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1259": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1258": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1257": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1256": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1255": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1254": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1253": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1251": "Linter requirements",
+      "https://github.com/NetAppDocs/docs-help/discussions/1191": "Linter requirements"
+};
+    const tbodyMain = document.getElementById('rows-main');
+    const tbodyDiscussion = document.getElementById('rows-discussion');
+    const mainRowCounts = document.getElementById('main-row-counts');
+    const discussionRowCounts = document.getElementById('discussion-row-counts');
+    const q = document.getElementById('search');
+    const statusFilter = document.getElementById('statusFilter');
+    const metaTotalItems = document.getElementById('meta-total-items');
+    const metaTotalBugs = document.getElementById('meta-total-bugs');
+    const metaDiscussionTop = document.getElementById('meta-discussion-top');
+    const metaIcebox = document.getElementById('meta-icebox');
+    const metaBacklog = document.getElementById('meta-backlog');
+    const metaImplemented = document.getElementById('meta-implemented');
+    const metaState = document.getElementById('meta-state');
+    const metaToDevelop = document.getElementById('meta-to-develop');
+    const metaImplementedClosed = document.getElementById('meta-implemented-closed');
+    const metaMissingAssignee = document.getElementById('meta-missing-assignee');
+    const metaNoGh = document.getElementById('meta-no-gh');
+    const metaDiscussion = document.getElementById('meta-discussion');
+    const sortButtons = Array.from(document.querySelectorAll('.sort-btn'));
+    const sortButtonsDisc = Array.from(document.querySelectorAll('.sort-btn-disc'));
+    const columnFilters = {
+      id: document.getElementById('filter-id'),
+      title: document.getElementById('filter-title'),
+      status: document.getElementById('filter-status-col'),
+      issueType: document.getElementById('filter-issue-type'),
+      state: document.getElementById('filter-state-col'),
+      description: document.getElementById('filter-description'),
+      author: document.getElementById('filter-author'),
+      source: document.getElementById('filter-source'),
+      backlog: document.getElementById('filter-backlog'),
+    };
+    const sortState = { key: '', direction: 'asc' };
+    const sortStateDisc = { key: '', direction: 'asc' };
+    const discColumnFilters = {
+      id: document.getElementById('filter-id-disc'),
+      title: document.getElementById('filter-title-disc'),
+      status: document.getElementById('filter-status-col-disc'),
+      issueType: document.getElementById('filter-issue-type-disc'),
+      state: document.getElementById('filter-state-col-disc'),
+      description: document.getElementById('filter-description-disc'),
+      author: document.getElementById('filter-author-disc'),
+      source: document.getElementById('filter-source-disc'),
+      backlog: document.getElementById('filter-backlog-disc'),
+    };
+
+    const esc = (v) => (v ?? '').toString()
+      .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+
+    function sourceBadge(src) {
+      src = src || '';
+      if (src.startsWith('Production')) {
+        const path = src.replace(/^Production\s*\(/, '').replace(/\)$/, '');
+        const url = 'https://github.com/NetAppDocOps/jekyll-lipi/blob/main/' + path;
+        return `<a href="${url}" target="_blank" rel="noopener" class="src-badge src-production">Production — ${esc(path)}</a>`;
+      }
+      if (src.includes('jekyll-lipi issue')) return `<span class="src-badge src-issue">jekyll-lipi issue</span>`;
+      if (src.includes('docs-help discussion')) return `<span class="src-badge src-discussion">docs-help discussion</span>`;
+      return esc(src);
+    }
+
+    function stateValue(row) {
+      return (row.Closed || '').trim() !== '—' ? 'Closed' : 'Open';
+    }
+
+    function issueUrlFromRow(row) {
+      const link = (row.Link || '').trim();
+      return /\/issues\/\d+$/.test(link) ? link : '';
+    }
+
+    function issueTypeValue(row) {
+      const link = (row.Link || '').trim();
+      return issueTypeByLink[link] || '—';
+    }
+
+    function isBugType(row) {
+      return issueTypeValue(row) === 'Bug';
+    }
+
+    function normalizedBacklogLinkage(row) {
+      const raw = (row['Already In Backlog'] || '').toString().trim();
+      const status = (row.Status || '').trim();
+      const id = (row['Issue/Disc #'] || '').trim();
+      if (status === 'Discussion') return raw;
+      if (raw === 'No') return 'Self';
+      if ((status === 'Backlog' || status === 'Icebox') && /^\d+$/.test(id) && raw === '—') return 'Self';
+      return raw;
+    }
+
+    function renderBacklogLinkage(row) {
+      const raw = normalizedBacklogLinkage(row);
+      if (!raw || raw === '—') return '<span class="small">—</span>';
+      if (raw === 'Self') return '<span class="small">Self</span>';
+      return esc(raw).replace(/#(\d+)/g, (_, n) => `<a class="backlog-badge" href="https://github.com/NetAppDocOps/jekyll-lipi/issues/${n}" target="_blank" rel="noopener">#${n}</a>`);
+    }
+
+    function valueForKey(row, key) {
+      if (key === 'id') return (row['Issue/Disc #'] || '').trim();
+      if (key === 'title') return (row.Title || '').trim();
+      if (key === 'status') return (row.Status || '').trim();
+      if (key === 'issueType') return issueTypeValue(row);
+      if (key === 'state') return stateValue(row);
+      if (key === 'description') return (row.Description || '').trim();
+      if (key === 'author') return (row.Author || '').trim();
+      if (key === 'source') return (row.Source || '').trim();
+      if (key === 'backlog') return (row['Already In Backlog'] || '').trim();
+      return '';
+    }
+
+    function compareValues(a, b, key) {
+      const av = valueForKey(a, key).toLowerCase();
+      const bv = valueForKey(b, key).toLowerCase();
+      if (key === 'id') {
+        const an = /^\d+$/.test(av) ? Number(av) : Number.POSITIVE_INFINITY;
+        const bn = /^\d+$/.test(bv) ? Number(bv) : Number.POSITIVE_INFINITY;
+        if (an !== bn) return an - bn;
+      }
+      if (av < bv) return -1;
+      if (av > bv) return 1;
+      return 0;
+    }
+
+    function updateSortIndicators() {
+      sortButtons.forEach(btn => {
+        const key = btn.dataset.sortKey || '';
+        const indicator = btn.querySelector('.sort-indicator');
+        if (!indicator) return;
+        if (sortState.key !== key) {
+          indicator.textContent = '↕';
+          return;
+        }
+        indicator.textContent = sortState.direction === 'asc' ? '↑' : '↓';
+      });
+    }
+
+    function render() {
+      const total = data.length;
+      const implementedCount = data.filter(r => (r.Status || '').trim() === 'Implemented').length;
+      const backlogCount = data.filter(r => (r.Status || '').trim() === 'Backlog').length;
+      const iceboxCount = data.filter(r => (r.Status || '').trim() === 'Icebox').length;
+      const discussionCount = data.filter(r => (r.Status || '').trim() === 'Discussion').length;
+      const totalBugsCount = new Set(data.map(r => (r.Link || '').trim()).filter(link => issueTypeByLink[link] === 'Bug')).size;
+      const openCount = data.filter(r => stateValue(r) === 'Open').length;
+      const closedCount = total - openCount;
+      const missingAssigneeCount = data.filter(r => {
+        const author = (r.Author || '').trim();
+        return !author || author === '—';
+      }).length;
+      const implementedNoGhCount = data.filter(r => (r.Status || '').trim() === 'Implemented' && (r['Issue/Disc #'] || '').trim() === '—').length;
+      const implementedClosedCount = data.filter(r => (r.Status || '').trim() === 'Implemented' && stateValue(r) === 'Closed').length;
+      const toDevelopCount = data.filter(r => stateValue(r) === 'Open' && normalizedBacklogLinkage(r) === 'Self').length;
+      const furtherDiscussionCount = data.filter(r => (r.Status || '').trim() === 'Discussion' && stateValue(r) === 'Open').length;
+
+      metaTotalItems.textContent = String(total);
+      metaTotalBugs.textContent = String(totalBugsCount);
+      metaDiscussionTop.textContent = String(discussionCount);
+      metaIcebox.textContent = String(iceboxCount);
+      metaBacklog.textContent = String(backlogCount);
+      metaImplemented.textContent = String(implementedCount);
+      metaState.textContent = `${openCount} / ${closedCount}`;
+      metaMissingAssignee.textContent = String(missingAssigneeCount);
+      metaNoGh.textContent = String(implementedNoGhCount);
+      metaDiscussion.textContent = String(furtherDiscussionCount);
+      metaToDevelop.textContent = String(toDevelopCount);
+      metaImplementedClosed.textContent = String(implementedClosedCount);
+
+      const text = q.value.trim().toLowerCase();
+      const selectedStatus = statusFilter.value;
+      const filtered = data.filter(r => {
+        const status = (r.Status || '').trim();
+        if (selectedStatus && status !== selectedStatus) return false;
+        if (!text) return true;
+        const hay = [r['Issue/Disc #'], r.Title, r.Description, r.Status, issueTypeValue(r), r.Source, r.Labels, r.Author, r['Already In Backlog']]
+          .map(x => (x || '').toLowerCase()).join(' | ');
+        return hay.includes(text);
+      });
+
+      const mainRowsFiltered = filtered.filter(r => (r.Status || '').trim() !== 'Discussion').filter(r => {
+        const idFilter = (columnFilters.id.value || '').trim().toLowerCase();
+        const titleFilter = (columnFilters.title.value || '').trim().toLowerCase();
+        const statusColFilter = (columnFilters.status.value || '').trim();
+        const issueTypeFilter = (columnFilters.issueType.value || '').trim().toLowerCase();
+        const stateColFilter = (columnFilters.state.value || '').trim();
+        const descFilter = (columnFilters.description.value || '').trim().toLowerCase();
+        const authorFilter = (columnFilters.author.value || '').trim().toLowerCase();
+        const sourceFilter = (columnFilters.source.value || '').trim().toLowerCase();
+        const backlogFilter = (columnFilters.backlog.value || '').trim().toLowerCase();
+        const state = stateValue(r);
+
+        if (idFilter && !valueForKey(r, 'id').toLowerCase().includes(idFilter)) return false;
+        if (titleFilter && !valueForKey(r, 'title').toLowerCase().includes(titleFilter)) return false;
+        if (statusColFilter && valueForKey(r, 'status') !== statusColFilter) return false;
+        if (issueTypeFilter && !valueForKey(r, 'issueType').toLowerCase().includes(issueTypeFilter)) return false;
+        if (stateColFilter && state !== stateColFilter) return false;
+        if (descFilter && !valueForKey(r, 'description').toLowerCase().includes(descFilter)) return false;
+        if (authorFilter && !valueForKey(r, 'author').toLowerCase().includes(authorFilter)) return false;
+        if (sourceFilter && !valueForKey(r, 'source').toLowerCase().includes(sourceFilter)) return false;
+        if (backlogFilter && !valueForKey(r, 'backlog').toLowerCase().includes(backlogFilter)) return false;
+        return true;
+      });
+
+      const statusRank = s => (s || '').trim() === 'Implemented' ? 1 : 0;
+      const stateRank = r => stateValue(r) === 'Closed' ? 1 : 0;
+      const idRank = r => (r.Status || '').trim() === 'Implemented' && (r['Issue/Disc #'] || '').trim() === '—' ? 1 : 0;
+      const decorated = mainRowsFiltered.map((r, index) => ({ r, index }));
+
+      decorated.sort((a, b) => {
+        if (!sortState.key) {
+          return statusRank(a.r.Status) - statusRank(b.r.Status) ||
+            stateRank(a.r) - stateRank(b.r) ||
+            idRank(a.r) - idRank(b.r) ||
+            a.index - b.index;
+        }
+        const cmp = compareValues(a.r, b.r, sortState.key);
+        if (cmp !== 0) return sortState.direction === 'asc' ? cmp : -cmp;
+        return statusRank(a.r.Status) - statusRank(b.r.Status) ||
+          stateRank(a.r) - stateRank(b.r) ||
+          idRank(a.r) - idRank(b.r) ||
+          a.index - b.index;
+      });
+
+      const mainRows = decorated.map(item => item.r);
+
+      const rowHtml = (r) => {
+        const id = esc(r['Issue/Disc #'] || '—');
+        const rawId = (r['Issue/Disc #'] || '').trim();
+        const title = esc(r.Title || '');
+        const status = esc(r.Status || '');
+        const issueType = esc(issueTypeValue(r));
+        const state = stateValue(r);
+        const desc = esc(r.Description || '');
+        const author = esc(r.Author || '—');
+        const backlog = renderBacklogLinkage(r);
+        const link = esc(r.Link || '');
+        const statusClass = 'status-' + status.replace(/\s+/g, '');
+        const idCell = link && rawId && rawId !== '—'
+          ? `<a href="${link}" target="_blank" rel="noopener">${id}</a>`
+          : id;
+        return `<tr>
+          <td>${idCell}</td>
+          <td>${title}</td>
+          <td class="${statusClass}">${status}</td>
+          <td>${issueType}</td>
+          <td>${state}</td>
+          <td>${desc || '<span class="small">—</span>'}</td>
+          <td>${author}</td>
+          <td>${sourceBadge(r.Source || '')}</td>
+          <td>${backlog}</td>
+        </tr>`;
+      };
+
+      let discussionRows = filtered.filter(r => (r.Status || '').trim() === 'Discussion');
+
+      discussionRows = discussionRows.filter(r => {
+        const idFilter = (columnFiltersDiscussion.id.value || '').trim().toLowerCase();
+        const titleFilter = (columnFiltersDiscussion.title.value || '').trim().toLowerCase();
+        const statusFilterDisc = (columnFiltersDiscussion.status.value || '').trim();
+        const issueTypeFilterDisc = (columnFiltersDiscussion.issueType.value || '').trim().toLowerCase();
+        const stateFilterDisc = (columnFiltersDiscussion.state.value || '').trim();
+        const descFilter = (columnFiltersDiscussion.description.value || '').trim().toLowerCase();
+        const authorFilter = (columnFiltersDiscussion.author.value || '').trim().toLowerCase();
+        const sourceFilter = (columnFiltersDiscussion.source.value || '').trim().toLowerCase();
+        const backlogFilter = (columnFiltersDiscussion.backlog.value || '').trim().toLowerCase();
+        const state = stateValue(r);
+
+        if (idFilter && !valueForKey(r, 'id').toLowerCase().includes(idFilter)) return false;
+        if (titleFilter && !valueForKey(r, 'title').toLowerCase().includes(titleFilter)) return false;
+        if (statusFilterDisc && valueForKey(r, 'status') !== statusFilterDisc) return false;
+        if (issueTypeFilterDisc && !valueForKey(r, 'issueType').toLowerCase().includes(issueTypeFilterDisc)) return false;
+        if (stateFilterDisc && state !== stateFilterDisc) return false;
+        if (descFilter && !valueForKey(r, 'description').toLowerCase().includes(descFilter)) return false;
+        if (authorFilter && !valueForKey(r, 'author').toLowerCase().includes(authorFilter)) return false;
+        if (sourceFilter && !valueForKey(r, 'source').toLowerCase().includes(sourceFilter)) return false;
+        if (backlogFilter && !valueForKey(r, 'backlog').toLowerCase().includes(backlogFilter)) return false;
+        return true;
+      });
+
+      const decoratedDiscussion = discussionRows.map((r, index) => ({ r, index }));
+      decoratedDiscussion.sort((a, b) => {
+        if (!sortStateDiscussion.key) return stateRank(a.r) - stateRank(b.r) || a.index - b.index;
+        const cmp = compareValues(a.r, b.r, sortStateDiscussion.key);
+        if (cmp !== 0) return sortStateDiscussion.direction === 'asc' ? cmp : -cmp;
+        return stateRank(a.r) - stateRank(b.r) || a.index - b.index;
+      });
+      discussionRows = decoratedDiscussion.map(item => item.r);
+
+      tbodyMain.innerHTML = mainRows.map(rowHtml).join('');
+      tbodyDiscussion.innerHTML = discussionRows.map(rowHtml).join('');
+      mainRowCounts.textContent = `Total Rows: ${data.filter(r => (r.Status || '').trim() !== 'Discussion').length} | Total Rows Selected: ${mainRows.length}`;
+      discussionRowCounts.textContent = `Total Rows: ${data.filter(r => (r.Status || '').trim() === 'Discussion').length} | Total Rows Selected: ${discussionRows.length}`;
+    }
+
+    q.addEventListener('input', render);
+    statusFilter.addEventListener('change', render);
+    sortButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.sortKey || '';
+        if (sortState.key !== key) {
+          sortState.key = key;
+          sortState.direction = 'asc';
+        } else if (sortState.direction === 'asc') {
+          sortState.direction = 'desc';
+        } else {
+          sortState.key = '';
+          sortState.direction = 'asc';
+        }
+        updateSortIndicators();
+        render();
+      });
+    });
+    function updateSortIndicatorsDisc() {
+      sortButtonsDisc.forEach(btn => {
+        const key = btn.dataset.sortKey || '';
+        const indicator = btn.querySelector('.sort-indicator');
+        if (!indicator) return;
+        if (sortStateDisc.key !== key) {
+          indicator.textContent = '↕';
+          return;
+        }
+        indicator.textContent = sortStateDisc.direction === 'asc' ? '↑' : '↓';
+      });
+    }
+
+    sortButtonsDisc.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.sortKey || '';
+        if (sortStateDisc.key !== key) {
+          sortStateDisc.key = key;
+          sortStateDisc.direction = 'asc';
+        } else if (sortStateDisc.direction === 'asc') {
+          sortStateDisc.direction = 'desc';
+        } else {
+          sortStateDisc.key = '';
+          sortStateDisc.direction = 'asc';
+        }
+        updateSortIndicatorsDisc();
+        render();
+      });
+    });
+
+    Object.values(discColumnFilters).forEach(el => {
+      if (!el) return;
+      el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', render);
+    });
+
+    Object.values(columnFilters).forEach(el => {
+      const eventName = el.tagName === 'SELECT' ? 'change' : 'input';
+      el.addEventListener(eventName, render);
+    });
+    updateSortIndicators();
+    render();
+  </script>
+</body>
+</html>
