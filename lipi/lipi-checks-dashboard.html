@@ -121,6 +121,7 @@
     .stats-secondary .card:nth-child(6) .small { color: #1f7a4d; }
     .table-wrap { max-height: 68vh; overflow: auto; border-radius: 12px; }
     .table-counts { margin: 8px 4px 0; color: var(--muted); font-size: .82rem; text-align: right; }
+    .table-section-title { margin: 14px 0 8px; font-size: 1rem; font-weight: 700; color: var(--accent); }
     .footer { margin-top: 10px; color: var(--muted); font-size: .82rem; }
     a { color: var(--accent); }
     .generated-meta { color: #ffffff; opacity: .92; }
@@ -168,53 +169,8 @@
       </div>
     </div>
 
+    <h3 class="table-section-title">Outstanding Discussions - (Ben and Ivana to triage)</h3>
     <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th><button class="sort-btn" data-sort-key="id" aria-label="Sort by GH#">GH# <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="title" aria-label="Sort by Title">Title <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="status" aria-label="Sort by Status">Status <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="issueType" aria-label="Sort by Issue Type">Issue Type <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="state" aria-label="Sort by State">State <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="description" aria-label="Sort by Description">Description <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="author" aria-label="Sort by Author">Author <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="source" aria-label="Sort by Source">Source <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="backlog" aria-label="Sort by Backlog Linkage">Backlog Linkage <span class="sort-indicator">↕</span></button></th>
-          </tr>
-          <tr class="filter-row">
-            <th><input id="filter-id" placeholder="Filter GH#" /></th>
-            <th><input id="filter-title" placeholder="Filter title" /></th>
-            <th>
-              <select id="filter-status-col">
-                <option value="">All</option>
-                <option>Implemented</option>
-                <option>Backlog</option>
-                <option>Icebox</option>
-                <option>Discussion</option>
-                <option>Rejected</option>
-              </select>
-            </th>
-            <th><input id="filter-issue-type" placeholder="Filter issue type" /></th>
-            <th>
-              <select id="filter-state-col">
-                <option value="">All</option>
-                <option>Open</option>
-                <option>Closed</option>
-              </select>
-            </th>
-            <th><input id="filter-description" placeholder="Filter description" /></th>
-            <th><input id="filter-author" placeholder="Filter author" /></th>
-            <th><input id="filter-source" placeholder="Filter source" /></th>
-            <th><input id="filter-backlog" placeholder="Filter backlog" /></th>
-          </tr>
-        </thead>
-        <tbody id="rows-main"></tbody>
-      </table>
-      <p id="main-row-counts" class="table-counts">Total Rows: 0 | Total Rows Selected: 0</p>
-    </div>
-
-    <div class="table-wrap" style="margin-top: 16px;">
       <table>
         <thead>
           <tr>
@@ -258,6 +214,53 @@
         <tbody id="rows-discussion"></tbody>
       </table>
       <p id="discussion-row-counts" class="table-counts">Total Rows: 0 | Total Rows Selected: 0</p>
+    </div>
+
+    <h3 class="table-section-title">Development items. To create GH Issue or Develop.</h3>
+    <div class="table-wrap" style="margin-top: 16px;">
+      <table>
+        <thead>
+          <tr>
+            <th><button class="sort-btn" data-sort-key="id" aria-label="Sort by GH#">GH# <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="title" aria-label="Sort by Title">Title <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="status" aria-label="Sort by Status">Status <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="issueType" aria-label="Sort by Issue Type">Issue Type <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="state" aria-label="Sort by State">State <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="description" aria-label="Sort by Description">Description <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="author" aria-label="Sort by Author">Author <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="source" aria-label="Sort by Source">Source <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="backlog" aria-label="Sort by Backlog Linkage">Backlog Linkage <span class="sort-indicator">↕</span></button></th>
+          </tr>
+          <tr class="filter-row">
+            <th><input id="filter-id" placeholder="Filter GH#" /></th>
+            <th><input id="filter-title" placeholder="Filter title" /></th>
+            <th>
+              <select id="filter-status-col">
+                <option value="">All</option>
+                <option>Implemented</option>
+                <option>Backlog</option>
+                <option>Icebox</option>
+                <option>Discussion</option>
+                <option>Rejected</option>
+              </select>
+            </th>
+            <th><input id="filter-issue-type" placeholder="Filter issue type" /></th>
+            <th>
+              <select id="filter-state-col">
+                <option value="">All</option>
+                <option>Open</option>
+                <option>Closed</option>
+              </select>
+            </th>
+            <th><input id="filter-description" placeholder="Filter description" /></th>
+            <th><input id="filter-author" placeholder="Filter author" /></th>
+            <th><input id="filter-source" placeholder="Filter source" /></th>
+            <th><input id="filter-backlog" placeholder="Filter backlog" /></th>
+          </tr>
+        </thead>
+        <tbody id="rows-main"></tbody>
+      </table>
+      <p id="main-row-counts" class="table-counts">Total Rows: 0 | Total Rows Selected: 0</p>
     </div>
 
     <p class="footer">Tip: save this HTML and share directly, or publish it via GitHub Pages for a URL-based dashboard.</p>
