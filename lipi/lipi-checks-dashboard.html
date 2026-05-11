@@ -491,8 +491,8 @@
       const iceboxCount = data.filter(r => (r.Status || '').trim() === 'Icebox').length;
       const discussionCount = data.filter(r => (r.Status || '').trim() === 'Discussion').length;
       const totalIssuesCount = data.filter(countsAsTotalIssue).length;
-      const openCount = data.filter(r => stateValue(r) === 'Open').length;
-      const closedCount = total - openCount;
+      const openCount = data.filter(r => countsAsTotalIssue(r) && stateValue(r) === 'Open').length;
+      const closedCount = totalIssuesCount - openCount;
       const missingAssigneeCount = data.filter(r => {
         const author = (r.Author || '').trim();
         return !author || author === '—';
