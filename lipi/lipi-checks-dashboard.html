@@ -116,7 +116,12 @@
     .stats-secondary .card:nth-child(4) .small { color: #9a1a1a; }
     .stats-secondary .card:nth-child(5) .small { color: var(--implemented); }
     .stats-secondary .card:nth-child(6) .small { color: #1f7a4d; }
-    .table-wrap { max-height: 68vh; overflow: auto; border-radius: 12px; }
+    .table-wrap {
+      /* Two sticky header rows + about 10 body rows visible before scroll */
+      max-height: calc(78px + 10 * 42px);
+      overflow: auto;
+      border-radius: 12px;
+    }
     .table-counts { margin: 8px 4px 0; color: var(--muted); font-size: .82rem; text-align: right; }
     .footer { margin-top: 10px; color: var(--muted); font-size: .82rem; }
     a { color: var(--accent); }
@@ -474,7 +479,13 @@
       const backlogCount = data.filter(r => (r.Status || '').trim() === 'Backlog').length;
       const iceboxCount = data.filter(r => (r.Status || '').trim() === 'Icebox').length;
       const discussionCount = data.filter(r => (r.Status || '').trim() === 'Discussion').length;
-      const totalIssuesCount = data.filter(r => (r.Status || '').trim() !== 'Discussion' && !!issueUrlFromRow(r)).length;
+      const totalIssuesCount = data.filter(r => {
+        const status = (r.Status || '').trim();
+        if (status === 'Discussion') return false;
+        if (!issueUrlFromRow(r)) return false;
+        const issueType = (issueTypeValue(r) || '').trim().toLowerCase();
+        return issueType !== 'linter requirements';
+      }).length;
       const openCount = data.filter(r => stateValue(r) === 'Open').length;
       const closedCount = total - openCount;
       const missingAssigneeCount = data.filter(r => {
