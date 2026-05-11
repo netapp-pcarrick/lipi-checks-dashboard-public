@@ -34,7 +34,6 @@
       color: white;
       border-radius: 18px;
       padding: 24px;
-      text-align: center;
       box-shadow: 0 12px 30px rgba(13,49,61,.25);
     }
     .hero h1 { margin: 0 0 8px; font-size: clamp(1.4rem, 2.8vw, 2.2rem); letter-spacing: .2px; }
@@ -47,7 +46,6 @@
     .state-bad { color: #9a1a1a; font-weight: 700; }
     .state-good { color: #1f7a4d; font-weight: 700; }
     .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .8rem; color: white; }
-    .pill-total-items { background: var(--accent); }
     .controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin: 18px 0 12px; }
     input, select {
       width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
@@ -55,8 +53,8 @@
     }
     .filters { display:flex; gap:8px; align-items:center; }
     table { width: 100%; min-width: 1280px; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
-    thead th { text-align: left; background: #f0eee5; padding: 10px; font-size: .88rem; position: sticky; top: 0; z-index: 1; color: var(--accent); }
-    thead tr.filter-row th { background: #f7f5ec; padding: 8px; top: 39px; z-index: 1; color: var(--muted); }
+    thead th { text-align: left; background: #f0eee5; padding: 10px; font-size: .88rem; position: sticky; top: 0; z-index: 1; }
+    thead tr.filter-row th { background: #f7f5ec; padding: 8px; top: 39px; z-index: 1; }
     thead tr.filter-row input, thead tr.filter-row select {
       width: 100%;
       padding: 6px 8px;
@@ -136,7 +134,7 @@
       <p>Shareable inventory view for implemented checks, backlog, icebox, and discussion requirements.</p>
       <p class="small generated-meta">Generated: 2026-05-11 19:19 UTC | Source: embedded inventory + GitHub GraphQL full data refresh</p>
       <div class="stats">
-        <div class="card"><span class="pill pill-total-items">Total Items</span><div id="meta-total-items" class="stat-value">0</div></div>
+        <div class="card"><div class="small">Total Items</div><div id="meta-total-items" class="stat-value">0</div></div>
         <div class="card"><span class="pill" style="background:var(--rejected)">Total Issues</span><div id="meta-total-bugs" class="stat-value">0</div></div>
         <div class="card"><span class="pill" style="background:var(--discussion)">Discussion</span><div id="meta-discussion-top" class="stat-value">0</div></div>
         <div class="card"><span class="pill" style="background:var(--icebox)">Icebox</span><div id="meta-icebox" class="stat-value">0</div></div>
@@ -144,7 +142,7 @@
         <div class="card"><span class="pill" style="background:var(--implemented)">Implemented</span><div id="meta-implemented" class="stat-value">0</div></div>
       </div>
       <div class="stats-secondary">
-        <div class="card"><div class="small"><span class="state-bad">Open</span> / <span class="state-good">Closed</span></div><div id="meta-state" class="stat-value">0 / 0</div></div>
+        <div class="card"><div class="small">State <span class="state-hint"><span class="state-bad">Open</span> / <span class="state-good">Closed</span></span></div><div id="meta-state" class="stat-value">0 / 0</div></div>
         <div class="card"><div class="small">Missing Assignee</div><div id="meta-missing-assignee" class="stat-value">0</div></div>
         <div class="card"><div class="small">Requires Further Discussion</div><div id="meta-discussion" class="stat-value">0</div></div>
         <div class="card"><div class="small">To Develop</div><div id="meta-to-develop" class="stat-value">0</div></div>
@@ -405,16 +403,6 @@
       return issueTypeByLink[link] || '—';
     }
 
-    function countsAsTotalIssue(row) {
-      const status = (row.Status || '').trim();
-      if (status === 'Discussion') return false;
-      return issueTypeValue(row).toLowerCase() !== 'linter requirements';
-    }
-
-    function countsAsTotalItem(row) {
-      return (row.Status || '').trim() === 'Discussion' || countsAsTotalIssue(row);
-    }
-
     function isBugType(row) {
       return issueTypeValue(row) === 'Bug';
     }
@@ -481,12 +469,12 @@
     }
 
     function render() {
-      const total = data.filter(countsAsTotalItem).length;
+      const total = data.length;
       const implementedCount = data.filter(r => (r.Status || '').trim() === 'Implemented').length;
       const backlogCount = data.filter(r => (r.Status || '').trim() === 'Backlog').length;
       const iceboxCount = data.filter(r => (r.Status || '').trim() === 'Icebox').length;
       const discussionCount = data.filter(r => (r.Status || '').trim() === 'Discussion').length;
-      const totalIssuesCount = data.filter(countsAsTotalIssue).length;
+      const totalIssuesCount = data.filter(r => (r.Status || '').trim() !== 'Discussion' && !!issueUrlFromRow(r)).length;
       const openCount = data.filter(r => stateValue(r) === 'Open').length;
       const closedCount = total - openCount;
       const missingAssigneeCount = data.filter(r => {
