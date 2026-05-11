@@ -34,6 +34,7 @@
       color: white;
       border-radius: 18px;
       padding: 24px;
+      text-align: center;
       box-shadow: 0 12px 30px rgba(13,49,61,.25);
     }
     .hero h1 { margin: 0 0 8px; font-size: clamp(1.4rem, 2.8vw, 2.2rem); letter-spacing: .2px; }
@@ -46,6 +47,7 @@
     .state-bad { color: #9a1a1a; font-weight: 700; }
     .state-good { color: #1f7a4d; font-weight: 700; }
     .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .8rem; color: white; }
+    .pill-total-items { background: var(--accent); }
     .controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin: 18px 0 12px; }
     input, select {
       width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
@@ -134,7 +136,7 @@
       <p>Shareable inventory view for implemented checks, backlog, icebox, and discussion requirements.</p>
       <p class="small generated-meta">Generated: 2026-05-11 20:01 UTC | Source: embedded inventory + GitHub GraphQL full data refresh</p>
       <div class="stats">
-        <div class="card"><div class="small">Total Items</div><div id="meta-total-items" class="stat-value">0</div></div>
+        <div class="card"><span class="pill pill-total-items">Total Items</span><div id="meta-total-items" class="stat-value">0</div></div>
         <div class="card"><span class="pill" style="background:var(--rejected)">Total Issues</span><div id="meta-total-bugs" class="stat-value">0</div></div>
         <div class="card"><span class="pill" style="background:var(--discussion)">Discussion</span><div id="meta-discussion-top" class="stat-value">0</div></div>
         <div class="card"><span class="pill" style="background:var(--icebox)">Icebox</span><div id="meta-icebox" class="stat-value">0</div></div>
@@ -142,7 +144,7 @@
         <div class="card"><span class="pill" style="background:var(--implemented)">Implemented</span><div id="meta-implemented" class="stat-value">0</div></div>
       </div>
       <div class="stats-secondary">
-        <div class="card"><div class="small">State <span class="state-hint"><span class="state-bad">Open</span> / <span class="state-good">Closed</span></span></div><div id="meta-state" class="stat-value">0 / 0</div></div>
+        <div class="card"><div class="small">Open / Closed</div><div id="meta-state" class="stat-value">0 / 0</div></div>
         <div class="card"><div class="small">Missing Assignee</div><div id="meta-missing-assignee" class="stat-value">0</div></div>
         <div class="card"><div class="small">Requires Further Discussion</div><div id="meta-discussion" class="stat-value">0</div></div>
         <div class="card"><div class="small">To Develop</div><div id="meta-to-develop" class="stat-value">0</div></div>
