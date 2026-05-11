@@ -66,7 +66,8 @@
       background: #fff;
       color: var(--ink);
     }
-    .sort-btn {
+    .sort-btn,
+    .sort-btn-disc {
       all: unset;
       cursor: pointer;
       display: inline-flex;
@@ -402,7 +403,17 @@
 
     function issueTypeValue(row) {
       const link = (row.Link || '').trim();
-      return issueTypeByLink[link] || '—';
+      return (row['Issue Type'] || issueTypeByLink[link] || '—').toString().trim();
+    }
+
+    function countsAsTotalIssue(row) {
+      const status = (row.Status || '').trim();
+      if (status === 'Discussion') return false;
+      return issueTypeValue(row).toLowerCase() !== 'linter requirements';
+    }
+
+    function countsAsTotalItem(row) {
+      return (row.Status || '').trim() === 'Discussion' || countsAsTotalIssue(row);
     }
 
     function isBugType(row) {
@@ -471,12 +482,12 @@
     }
 
     function render() {
-      const total = data.length;
+      const total = data.filter(countsAsTotalItem).length;
       const implementedCount = data.filter(r => (r.Status || '').trim() === 'Implemented').length;
       const backlogCount = data.filter(r => (r.Status || '').trim() === 'Backlog').length;
       const iceboxCount = data.filter(r => (r.Status || '').trim() === 'Icebox').length;
       const discussionCount = data.filter(r => (r.Status || '').trim() === 'Discussion').length;
-      const totalIssuesCount = data.filter(r => (r.Status || '').trim() !== 'Discussion' && !!issueUrlFromRow(r)).length;
+      const totalIssuesCount = data.filter(countsAsTotalIssue).length;
       const openCount = data.filter(r => stateValue(r) === 'Open').length;
       const closedCount = total - openCount;
       const missingAssigneeCount = data.filter(r => {
