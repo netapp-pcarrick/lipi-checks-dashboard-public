@@ -500,7 +500,7 @@
       if (key === 'description') return (row.Description || '').trim();
       if (key === 'author') return (row.Author || '').trim();
       if (key === 'source') return (row.Source || '').trim();
-      if (key === 'backlog') return (row['Already In Backlog'] || '').trim();
+      if (key === 'backlog') return normalizedBacklogLinkage(row);
       return '';
     }
 
@@ -521,7 +521,7 @@
       const av = valueForKey(a, key).trim();
       const bv = valueForKey(b, key).trim();
 
-      if (tableName === 'main') {
+      if (tableName === 'main' && key === 'backlog') {
         const aDashRank = av === '—' ? 0 : 1;
         const bDashRank = bv === '—' ? 0 : 1;
         if (aDashRank !== bDashRank) return aDashRank - bDashRank;
@@ -658,7 +658,15 @@
       const statusRank = s => (s || '').trim() === 'Implemented' ? 1 : 0;
       const stateRank = r => stateValue(r) === 'Closed' ? 1 : 0;
       const idRank = r => (r.Status || '').trim() === 'Implemented' && (r['Issue/Disc #'] || '').trim() === '—' ? 1 : 0;
-      const backlogRank = r => { const v = normalizedBacklogLinkage(r); return v === 'Yes' ? 4 : v === 'Partial' ? 3 : v === 'Self' ? 2 : v === '\u2014' ? 0 : 1; };
+      const backlogRank = r => {
+        const v = normalizedBacklogLinkage(r);
+        if (v === '—') return 0;
+        if (v === 'No') return 1;
+        if (v === 'Self') return 2;
+        if (v.startsWith('Partial')) return 3;
+        if (v.startsWith('Yes')) return 4;
+        return 5;
+      };
       const decorated = mainRowsFiltered.map((r, index) => ({ r, index }));
 
       decorated.sort((a, b) => {
