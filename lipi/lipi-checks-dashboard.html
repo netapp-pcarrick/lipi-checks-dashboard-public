@@ -633,11 +633,13 @@
       const statusRank = s => (s || '').trim() === 'Implemented' ? 1 : 0;
       const stateRank = r => stateValue(r) === 'Closed' ? 1 : 0;
       const idRank = r => (r.Status || '').trim() === 'Implemented' && (r['Issue/Disc #'] || '').trim() === '—' ? 1 : 0;
+      const backlogRank = r => { const v = normalizedBacklogLinkage(r); return v === 'Yes' ? 3 : v === 'Partial' ? 2 : v === 'Self' ? 1 : 0; };
       const decorated = mainRowsFiltered.map((r, index) => ({ r, index }));
 
       decorated.sort((a, b) => {
         if (!sortState.key) {
-          return statusRank(a.r.Status) - statusRank(b.r.Status) ||
+          return backlogRank(a.r) - backlogRank(b.r) ||
+            statusRank(a.r.Status) - statusRank(b.r.Status) ||
             compareByIssueType(a.r, b.r) ||
             stateRank(a.r) - stateRank(b.r) ||
             idRank(a.r) - idRank(b.r) ||
@@ -714,7 +716,7 @@
 
       const decoratedDiscussion = discussionRows.map((r, index) => ({ r, index }));
       decoratedDiscussion.sort((a, b) => {
-        if (!sortStateDisc.key) return stateRank(a.r) - stateRank(b.r) || compareByIssueType(a.r, b.r) || a.index - b.index;
+        if (!sortStateDisc.key) return backlogRank(a.r) - backlogRank(b.r) || stateRank(a.r) - stateRank(b.r) || compareByIssueType(a.r, b.r) || a.index - b.index;
         const specialCmp = compareSpecialSortValues(a.r, b.r, sortStateDisc.key, 'discussion');
         if (specialCmp !== 0) return specialCmp;
         const cmp = compareValues(a.r, b.r, sortStateDisc.key);
