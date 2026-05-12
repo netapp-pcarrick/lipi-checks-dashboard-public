@@ -633,7 +633,7 @@
       const statusRank = s => (s || '').trim() === 'Implemented' ? 1 : 0;
       const stateRank = r => stateValue(r) === 'Closed' ? 1 : 0;
       const idRank = r => (r.Status || '').trim() === 'Implemented' && (r['Issue/Disc #'] || '').trim() === '—' ? 1 : 0;
-      const backlogRank = r => { const v = normalizedBacklogLinkage(r); return v === 'Yes' ? 3 : v === 'Partial' ? 2 : v === 'Self' ? 1 : 0; };
+      const backlogRank = r => { const v = normalizedBacklogLinkage(r); return v === 'Yes' ? 4 : v === 'Partial' ? 3 : v === 'Self' ? 2 : v === '\u2014' ? 0 : 1; };
       const decorated = mainRowsFiltered.map((r, index) => ({ r, index }));
 
       decorated.sort((a, b) => {
