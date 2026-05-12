@@ -54,7 +54,7 @@
       background: #fff; color: var(--ink); font: inherit;
     }
     .filters { display:flex; gap:8px; align-items:center; }
-    table { width: 100%; min-width: 1280px; table-layout: fixed; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    table { width: 100%; table-layout: fixed; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
     thead th { text-align: left; background: #f0eee5; padding: 10px; font-size: .88rem; position: sticky; top: 0; z-index: 1; color: var(--accent); }
     thead tr.filter-row th { background: #f7f5ec; padding: 8px; top: 39px; z-index: 1; color: var(--muted); }
     thead tr.filter-row input, thead tr.filter-row select {
@@ -77,17 +77,15 @@
       color: inherit;
     }
     .sort-indicator { color: var(--muted); font-size: .76rem; }
-    thead th:nth-child(1), tbody td:nth-child(1) { width: 90px; }
-    thead th:nth-child(2), tbody td:nth-child(2) { width: 280px; }
-    thead th:nth-child(3), tbody td:nth-child(3) { width: 120px; }
+    thead th:nth-child(1), tbody td:nth-child(1) { width: 80px; }
+    thead th:nth-child(2), tbody td:nth-child(2) { width: 220px; }
+    thead th:nth-child(3), tbody td:nth-child(3) { width: 110px; }
     thead th:nth-child(4), tbody td:nth-child(4) { width: 100px; }
-    thead th:nth-child(5), tbody td:nth-child(5) { width: 340px; }
-    thead th:nth-child(6), tbody td:nth-child(6) { width: 170px; }
-    thead th:nth-child(7), tbody td:nth-child(7) { width: 200px; }
-    thead th:nth-child(8), tbody td:nth-child(8) {
-      width: 260px;
-      white-space: nowrap;
-    }
+    thead th:nth-child(5), tbody td:nth-child(5) { width: 170px; }
+    thead th:nth-child(6), tbody td:nth-child(6) { width: 180px; }
+    thead th:nth-child(7), tbody td:nth-child(7) { width: 140px; }
+    thead th:nth-child(8), tbody td:nth-child(8) { width: 180px; white-space: nowrap; }
+    thead th:nth-child(9), tbody td:nth-child(9) { width: 150px; white-space: nowrap; }
     tbody td { padding: 10px; border-top: 1px solid #eceae0; font-size: .9rem; vertical-align: top; text-align: left; }
     tbody tr:hover { background: #faf9f4; }
     .status-Implemented { color: var(--implemented); font-weight: 700; }
@@ -95,6 +93,10 @@
     .status-Icebox { color: var(--icebox); font-weight: 700; }
     .status-Discussion { color: var(--discussion); font-weight: 700; }
     .status-Rejected { color: var(--rejected); font-weight: 700; }
+    .it-Feature { color: var(--implemented); font-weight: 600; }
+    .it-Bug { color: var(--rejected); font-weight: 600; }
+    .it-Enhancement { color: var(--backlog); font-weight: 600; }
+    .it-Linter-requirements { color: var(--discussion); font-weight: 600; }
     .src-badge {
       display: inline-block; padding: 2px 7px; border-radius: 6px;
       font-size: .76rem; font-family: monospace; font-weight: 600;
@@ -667,6 +669,7 @@
         const backlog = renderBacklogLinkage(r);
         const link = esc(r.Link || '');
         const statusClass = 'status-' + status.replace(/\s+/g, '');
+        const issueTypeClass = 'it-' + issueType.replace(/\s+/g, '-');
         const idCell = link && rawId && rawId !== '—'
           ? `<a href="${link}" target="_blank" rel="noopener">${id}</a>`
           : id;
@@ -674,7 +677,7 @@
           <td>${idCell}</td>
           <td>${title}</td>
           <td class="${statusClass}">${status}</td>
-          <td>${issueType}</td>
+          <td class="${issueTypeClass}">${issueType}</td>
           <td>${state}</td>
           <td>${desc || '<span class="small">—</span>'}</td>
           <td>${author}</td>
