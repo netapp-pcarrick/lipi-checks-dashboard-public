@@ -400,7 +400,7 @@
 
       const backlogHtml = esc(raw).replace(/#(\d+)/g, (_, n) => `<a class="backlog-badge" href="https://github.com/NetAppDocOps/jekyll-lipi/issues/${n}" target="_blank" rel="noopener">#${n}</a>`);
       const devLinksRaw = (row['Development Links'] || '').toString().trim();
-      if (raw === 'Yes → Implemented' && devLinksRaw && devLinksRaw !== '—') {
+      if (devLinksRaw && devLinksRaw !== '—') {
         const devUrls = devLinksRaw
           .split(';')
           .map(link => link.trim())
