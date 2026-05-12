@@ -395,10 +395,14 @@
 
     function renderBacklogLinkage(row) {
       const raw = normalizedBacklogLinkage(row);
-      if (!raw || raw === '—') return '<span class="small">—</span>';
-      if (raw === 'Self') return '<span class="small">Self</span>';
-
-      const backlogHtml = esc(raw).replace(/#(\d+)/g, (_, n) => `<a class="backlog-badge" href="https://github.com/NetAppDocOps/jekyll-lipi/issues/${n}" target="_blank" rel="noopener">#${n}</a>`);
+      let backlogHtml = '';
+      if (!raw || raw === '—') {
+        backlogHtml = '<span class="small">—</span>';
+      } else if (raw === 'Self') {
+        backlogHtml = '<span class="small">Self</span>';
+      } else {
+        backlogHtml = esc(raw).replace(/#(\d+)/g, (_, n) => `<a class="backlog-badge" href="https://github.com/NetAppDocOps/jekyll-lipi/issues/${n}" target="_blank" rel="noopener">#${n}</a>`);
+      }
       const devLinksRaw = (row['Development Links'] || '').toString().trim();
       if (devLinksRaw && devLinksRaw !== '—') {
         const devUrls = devLinksRaw
