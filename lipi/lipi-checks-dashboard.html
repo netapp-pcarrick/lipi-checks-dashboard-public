@@ -509,6 +509,36 @@
       return 0;
     }
 
+    function uniqueSelectValues(rows, getter) {
+      return Array.from(new Set(
+        rows
+          .map(getter)
+          .map(value => (value || '').trim())
+          .filter(Boolean)
+      )).sort((a, b) => a.localeCompare(b));
+    }
+
+    function syncSelectOptions(selectEl, values, emptyLabel) {
+      if (!selectEl) return;
+
+      const currentValue = selectEl.value;
+      const normalizedValues = Array.from(new Set(values));
+      const nextOptions = [`<option value="">${esc(emptyLabel)}</option>`]
+        .concat(normalizedValues.map(value => `<option value="${esc(value)}">${esc(value)}</option>`))
+        .join('');
+
+      if (selectEl.innerHTML !== nextOptions) {
+        selectEl.innerHTML = nextOptions;
+      }
+
+      selectEl.value = normalizedValues.includes(currentValue) ? currentValue : '';
+    }
+
+    function syncFilterSelects(rows, filters) {
+      syncSelectOptions(filters.status, uniqueSelectValues(rows, row => valueForKey(row, 'status')), 'All');
+      syncSelectOptions(filters.state, uniqueSelectValues(rows, row => valueForKey(row, 'state')), 'All');
+    }
+
     function compareByIssueType(a, b, primaryKey = '') {
       if (primaryKey === 'issueType') return 0;
       return compareValues(a, b, 'issueType');
@@ -528,6 +558,8 @@
     }
 
     function render() {
+      syncSelectOptions(statusFilter, uniqueSelectValues(data, row => (row.Status || '').trim()), 'All statuses');
+
       const total = data.filter(countsAsTotalItem).length;
       const implementedCount = data.filter(r => (r.Status || '').trim() === 'Implemented').length;
       const backlogCount = data.filter(r => (r.Status || '').trim() === 'Backlog').length;
@@ -568,6 +600,9 @@
           .map(x => (x || '').toLowerCase()).join(' | ');
         return hay.includes(text);
       });
+
+      syncFilterSelects(filtered.filter(r => (r.Status || '').trim() !== 'Discussion'), columnFilters);
+      syncFilterSelects(filtered.filter(r => (r.Status || '').trim() === 'Discussion'), discColumnFilters);
 
       const mainRowsFiltered = filtered.filter(r => (r.Status || '').trim() !== 'Discussion').filter(r => {
         const idFilter = (columnFilters.id.value || '').trim().toLowerCase();
