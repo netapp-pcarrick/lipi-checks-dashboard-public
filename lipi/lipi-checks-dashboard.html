@@ -54,6 +54,17 @@
       background: #fff; color: var(--ink); font: inherit;
     }
     .filters { display:flex; gap:8px; align-items:center; }
+    .action-btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font: inherit;
+      white-space: nowrap;
+    }
+    .copy-status { min-width: 220px; text-align: left; }
     table { width: 100%; table-layout: fixed; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
     thead th { text-align: left; background: #f0eee5; padding: 10px; font-size: .88rem; position: sticky; top: 0; z-index: 1; color: var(--accent); }
     thead tr.filter-row th { background: #f7f5ec; padding: 8px; top: 39px; z-index: 1; color: var(--muted); }
@@ -192,6 +203,8 @@
           <option>Discussion</option>
           <option>Rejected</option>
         </select>
+        <button id="copyVisibleBtn" class="action-btn" type="button">Copy Visible Data (Headers)</button>
+        <span id="copyStatus" class="small copy-status"></span>
       </div>
     </div>
 
@@ -315,6 +328,8 @@
     const metaDiscussion = document.getElementById('meta-discussion');
     const sortButtons = Array.from(document.querySelectorAll('.sort-btn'));
     const sortButtonsDisc = Array.from(document.querySelectorAll('.sort-btn-disc'));
+    const copyVisibleBtn = document.getElementById('copyVisibleBtn');
+    const copyStatus = document.getElementById('copyStatus');
     const columnFilters = {
       id: document.getElementById('filter-id'),
       title: document.getElementById('filter-title'),
@@ -328,6 +343,8 @@
     };
     const sortState = { key: '', direction: 'asc' };
     const sortStateDisc = { key: '', direction: 'asc' };
+    let visibleMainRows = [];
+    let visibleDiscussionRows = [];
     const discColumnFilters = {
       id: document.getElementById('filter-id-disc'),
       title: document.getElementById('filter-title-disc'),
@@ -342,6 +359,58 @@
 
     const esc = (v) => (v ?? '').toString()
       .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+
+    function tsvCell(value) {
+      return (value ?? '').toString().replace(/\t/g, ' ').replace(/\r?\n/g, ' ').trim();
+    }
+
+    function rowsToTsv(rows, columns) {
+      const lines = [columns.map(c => c.header).join('\t')];
+      rows.forEach(row => {
+        lines.push(columns.map(c => tsvCell(c.getter(row))).join('\t'));
+      });
+      return lines.join('\n');
+    }
+
+    function buildShareText() {
+      const mainColumns = [
+        { header: 'GH#', getter: r => r['Issue/Disc #'] || '—' },
+        { header: 'Title', getter: r => r.Title || '' },
+        { header: 'Status', getter: r => r.Status || '' },
+        { header: 'Issue Type', getter: r => issueTypeValue(r) },
+        { header: 'State', getter: r => stateValue(r) },
+        { header: 'Description', getter: r => r.Description || '' },
+        { header: 'Author', getter: r => r.Author || '—' },
+        { header: 'Source', getter: r => r.Source || '' },
+        { header: 'Backlog Linkage', getter: r => normalizedBacklogLinkage(r) },
+        { header: 'Link', getter: r => r.Link || '' },
+        { header: 'Development Links', getter: r => r['Development Links'] || '—' }
+      ];
+
+      const discussionColumns = [
+        { header: 'Discus#', getter: r => r['Issue/Disc #'] || '—' },
+        { header: 'Title', getter: r => r.Title || '' },
+        { header: 'Status', getter: r => r.Status || '' },
+        { header: 'Issue Type', getter: r => issueTypeValue(r) },
+        { header: 'State', getter: r => stateValue(r) },
+        { header: 'Description', getter: r => r.Description || '' },
+        { header: 'Author', getter: r => r.Author || '—' },
+        { header: 'Source', getter: r => r.Source || '' },
+        { header: 'Backlog Linkage', getter: r => normalizedBacklogLinkage(r) },
+        { header: 'Link', getter: r => r.Link || '' },
+        { header: 'Development Links', getter: r => r['Development Links'] || '—' }
+      ];
+
+      return [
+        'Lipi Checks Program Dashboard',
+        '',
+        'Outstanding Discussions - (Ben and Ivana to triage)',
+        rowsToTsv(visibleDiscussionRows, discussionColumns),
+        '',
+        'Development items. To create GH Issue or Develop.',
+        rowsToTsv(visibleMainRows, mainColumns)
+      ].join('\n');
+    }
 
     function sourceBadge(src) {
       src = src || '';
@@ -614,6 +683,7 @@
       });
 
       const mainRows = decorated.map(item => item.r);
+      visibleMainRows = mainRows;
 
       const rowHtml = (r) => {
         const id = esc(r['Issue/Disc #'] || '—');
@@ -680,6 +750,7 @@
         return compareByIssueType(a.r, b.r, sortStateDisc.key) || stateRank(a.r) - stateRank(b.r) || a.index - b.index;
       });
       discussionRows = decoratedDiscussion.map(item => item.r);
+      visibleDiscussionRows = discussionRows;
 
       tbodyMain.innerHTML = mainRows.map(rowHtml).join('');
       tbodyDiscussion.innerHTML = discussionRows.map(rowHtml).join('');
@@ -744,6 +815,29 @@
       const eventName = el.tagName === 'SELECT' ? 'change' : 'input';
       el.addEventListener(eventName, render);
     });
+
+    copyVisibleBtn?.addEventListener('click', async () => {
+      const payload = buildShareText();
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(payload);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = payload;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+        }
+        copyStatus.textContent = `Copied ${visibleMainRows.length + visibleDiscussionRows.length} visible rows with headers.`;
+      } catch (err) {
+        copyStatus.textContent = 'Copy failed. Please retry.';
+      }
+    });
+
     updateSortIndicators();
     render();
   </script>
