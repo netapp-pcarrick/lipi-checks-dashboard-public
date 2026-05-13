@@ -1,6 +1,5 @@
-# Lipi Checks Dashboard (Public)
+# Lipi Checks Dashboard
 
-Public hosting repository for the dashboard.
+**URL:** [netapp-pcarrick.github.io/lipi-checks-dashboard-public/lipi/lipi-checks-dashboard.html](https://netapp-pcarrick.github.io/lipi-checks-dashboard-public/lipi/lipi-checks-dashboard.html)
 
-- Main URL: [https://netapp-pcarrick.github.io/lipi-checks-dashboard-public/](https://netapp-pcarrick.github.io/lipi-checks-dashboard-public/)
-- Direct file URL: [https://netapp-pcarrick.github.io/lipi-checks-dashboard-public/lipi/lipi-checks-dashboard.html](https://netapp-pcarrick.github.io/lipi-checks-dashboard-public/lipi/lipi-checks-dashboard.html)
+Showing 88 tracked checks with status tracking, backlog linkage, and implementation metrics.
