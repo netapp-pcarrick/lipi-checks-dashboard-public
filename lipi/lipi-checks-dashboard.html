@@ -435,6 +435,37 @@
       return backlogHtml;
     }
 
+    function hasDevelopmentLinks(row) {
+      const devLinksRaw = (row['Development Links'] || '').toString().trim();
+      return Boolean(devLinksRaw && devLinksRaw !== '—');
+    }
+
+    function statusSortRank(row) {
+      const status = (row.Status || '').trim();
+      const ranks = {
+        Discussion: 0,
+        Backlog: 1,
+        Icebox: 2,
+        Rejected: 3,
+        Implemented: 4,
+      };
+      return ranks[status] ?? 99;
+    }
+
+    function stateSortRank(row) {
+      return stateValue(row) === 'Open' ? 0 : 1;
+    }
+
+    function backlogSortRank(row) {
+      const backlog = normalizedBacklogLinkage(row);
+      const hasBacklogIssueLink = /#\d+/.test(backlog);
+
+      if (backlog === 'Yes → Implemented' && hasDevelopmentLinks(row)) return 3;
+      if (backlog === 'Yes → Implemented') return 2;
+      if (hasBacklogIssueLink) return 1;
+      return 0;
+    }
+
     function valueForKey(row, key) {
       if (key === 'id') return (row['Issue/Disc #'] || '').trim();
       if (key === 'title') return (row.Title || '').trim();
@@ -448,6 +479,18 @@
     }
 
     function compareValues(a, b, key) {
+      if (key === 'status') {
+        const rankDiff = statusSortRank(a) - statusSortRank(b);
+        if (rankDiff !== 0) return rankDiff;
+      }
+      if (key === 'state') {
+        const rankDiff = stateSortRank(a) - stateSortRank(b);
+        if (rankDiff !== 0) return rankDiff;
+      }
+      if (key === 'backlog') {
+        const rankDiff = backlogSortRank(a) - backlogSortRank(b);
+        if (rankDiff !== 0) return rankDiff;
+      }
       const av = valueForKey(a, key).toLowerCase();
       const bv = valueForKey(b, key).toLowerCase();
       if (key === 'id') {
@@ -465,9 +508,8 @@
       const bv = valueForKey(b, key).trim();
 
       if (tableName === 'main' && key === 'backlog') {
-        const aDashRank = av === '—' ? 0 : 1;
-        const bDashRank = bv === '—' ? 0 : 1;
-        if (aDashRank !== bDashRank) return aDashRank - bDashRank;
+        const rankDiff = backlogSortRank(a) - backlogSortRank(b);
+        if (rankDiff !== 0) return rankDiff;
       }
 
       if (tableName === 'discussion' && key === 'backlog') {
@@ -590,16 +632,15 @@
         return true;
       });
 
-      // Default order: Non-Implemented first; Closed items sink within each category; implemented no-ID rows sink further.
-      const statusRank = s => (s || '').trim() === 'Implemented' ? 1 : 0;
-      const stateRank = r => stateValue(r) === 'Closed' ? 1 : 0;
+      // Default order: Discussion first, then open items, then backlog linkage priorities.
       const idRank = r => (r.Status || '').trim() === 'Implemented' && (r['Issue/Disc #'] || '').trim() === '—' ? 1 : 0;
       const decorated = mainRowsFiltered.map((r, index) => ({ r, index }));
 
       decorated.sort((a, b) => {
         if (!sortState.key) {
-          return statusRank(a.r.Status) - statusRank(b.r.Status) ||
-            stateRank(a.r) - stateRank(b.r) ||
+          return statusSortRank(a.r) - statusSortRank(b.r) ||
+            stateSortRank(a.r) - stateSortRank(b.r) ||
+            backlogSortRank(a.r) - backlogSortRank(b.r) ||
             idRank(a.r) - idRank(b.r) ||
             a.index - b.index;
         }
@@ -607,8 +648,9 @@
         if (specialCmp !== 0) return specialCmp;
         const cmp = compareValues(a.r, b.r, sortState.key);
         if (cmp !== 0) return sortState.direction === 'asc' ? cmp : -cmp;
-        return statusRank(a.r.Status) - statusRank(b.r.Status) ||
-          stateRank(a.r) - stateRank(b.r) ||
+        return statusSortRank(a.r) - statusSortRank(b.r) ||
+          stateSortRank(a.r) - stateSortRank(b.r) ||
+          backlogSortRank(a.r) - backlogSortRank(b.r) ||
           idRank(a.r) - idRank(b.r) ||
           a.index - b.index;
       });
