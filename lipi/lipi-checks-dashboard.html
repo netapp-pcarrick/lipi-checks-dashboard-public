@@ -51,11 +51,11 @@
     .small { color: var(--muted); font-size: .83rem; }
     .stats-secondary .small { font-weight: 600; }
     .stats-secondary .card:nth-child(1) .small { color: var(--accent); }
-    .stats-secondary .card:nth-child(2) .small { color: var(--implemented); }
+    .stats-secondary .card:nth-child(2) .small { color: var(--rejected); }
     .stats-secondary .card:nth-child(3) .small { color: var(--discussion); }
-    .stats-secondary .card:nth-child(4) .small { color: var(--implemented); }
-    .stats-secondary .card:nth-child(5) .small { color: var(--backlog); }
-    .stats-secondary .card:nth-child(6) .small { color: var(--rejected); }
+    .stats-secondary .card:nth-child(4) .small { color: var(--backlog); }
+    .stats-secondary .card:nth-child(5) .small { color: var(--implemented); }
+    .stats-secondary .card:nth-child(6) .small { color: var(--implemented); }
     .controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin: 18px 0 12px; }
     input, select {
       width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
@@ -196,11 +196,11 @@
       </div>
       <div class="stats-secondary">
         <div class="card"><div class="small">Open / Closed</div><div id="meta-open-closed" class="stat-value">0 / 0</div></div>
-        <div class="card"><div class="small">Implemented (No GH#)</div><div id="meta-no-gh" class="stat-value">0</div></div>
-        <div class="card"><div class="small">Requires Further Discussion</div><div id="meta-discussion" class="stat-value">0</div></div>
-        <div class="card"><div class="small">Implemented and Closed</div><div id="meta-implemented-closed" class="stat-value">0</div></div>
-        <div class="card"><div class="small">To Develop</div><div id="meta-to-develop" class="stat-value">0</div></div>
         <div class="card"><div class="small">Missing Assignee</div><div id="meta-missing-assignee" class="stat-value">0</div></div>
+        <div class="card"><div class="small">Requires Further Discussion</div><div id="meta-discussion" class="stat-value">0</div></div>
+        <div class="card"><div class="small">To Develop</div><div id="meta-to-develop" class="stat-value">0</div></div>
+        <div class="card"><div class="small">Implemented (No GH#)</div><div id="meta-no-gh" class="stat-value">0</div></div>
+        <div class="card"><div class="small">Implemented and Closed</div><div id="meta-implemented-closed" class="stat-value">0</div></div>
       </div>
     </section>
 
