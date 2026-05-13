@@ -459,11 +459,14 @@
     function backlogSortRank(row) {
       const backlog = normalizedBacklogLinkage(row);
       const hasBacklogIssueLink = /#\d+/.test(backlog);
+      const isPartial = /^Partial\b/.test(backlog);
 
-      if (backlog === 'Yes → Implemented' && hasDevelopmentLinks(row)) return 3;
-      if (backlog === 'Yes → Implemented') return 2;
-      if (hasBacklogIssueLink) return 1;
-      return 0;
+      if (backlog === 'No' || backlog === 'Self') return 0;
+      if (isPartial) return 1;
+      if (backlog === '—') return 2;
+      if (hasBacklogIssueLink) return 3;
+      if (backlog === 'Yes → Implemented') return hasDevelopmentLinks(row) ? 5 : 4;
+      return 6;
     }
 
     function valueForKey(row, key) {
@@ -510,12 +513,6 @@
       if (tableName === 'main' && key === 'backlog') {
         const rankDiff = backlogSortRank(a) - backlogSortRank(b);
         if (rankDiff !== 0) return rankDiff;
-      }
-
-      if (tableName === 'discussion' && key === 'backlog') {
-        const aNoRank = av === 'No' ? 0 : 1;
-        const bNoRank = bv === 'No' ? 0 : 1;
-        if (aNoRank !== bNoRank) return aNoRank - bNoRank;
       }
 
       return 0;
