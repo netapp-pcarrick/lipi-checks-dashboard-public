@@ -205,7 +205,7 @@
     </section>
 
     <div class="controls">
-      <input id="search" placeholder="Search title, description, labels, author, issue/discussion #" />
+      <input id="search" placeholder="Search title, description, labels, assignee, issue/discussion #" />
       <div class="filters">
         <select id="statusFilter">
           <option value="">All statuses</option>
@@ -230,7 +230,7 @@
             <th><button class="sort-btn" data-sort-key="status" aria-label="Sort by Status">Status <span class="sort-indicator">↕</span></button></th>
             <th><button class="sort-btn" data-sort-key="state" aria-label="Sort by State">State <span class="sort-indicator">↕</span></button></th>
             <th><button class="sort-btn" data-sort-key="description" aria-label="Sort by Description">Description <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="author" aria-label="Sort by Author">Author <span class="sort-indicator">↕</span></button></th>
+            <th><button class="sort-btn" data-sort-key="assignee" aria-label="Sort by Assignee">Assignee <span class="sort-indicator">↕</span></button></th>
             <th><button class="sort-btn" data-sort-key="source" aria-label="Sort by Source">Source <span class="sort-indicator">↕</span></button></th>
             <th><button class="sort-btn" data-sort-key="backlog" aria-label="Sort by Backlog Linkage">Backlog Linkage <span class="sort-indicator">↕</span></button></th>
           </tr>
@@ -255,7 +255,7 @@
               </select>
             </th>
             <th><input id="filter-description" placeholder="Filter description" /></th>
-            <th><input id="filter-author" placeholder="Filter author" /></th>
+            <th><input id="filter-assignee" placeholder="Filter assignee" /></th>
             <th><input id="filter-source" placeholder="Filter source" /></th>
             <th><input id="filter-backlog" placeholder="Filter backlog" /></th>
           </tr>
@@ -303,7 +303,7 @@
       status: document.getElementById('filter-status-col'),
       state: document.getElementById('filter-state-col'),
       description: document.getElementById('filter-description'),
-      author: document.getElementById('filter-author'),
+      assignee: document.getElementById('filter-assignee'),
       source: document.getElementById('filter-source'),
       backlog: document.getElementById('filter-backlog'),
     };
@@ -332,7 +332,7 @@
         { header: 'Status', getter: r => r.Status || '' },
         { header: 'State', getter: r => stateValue(r) },
         { header: 'Description', getter: r => r.Description || '' },
-        { header: 'Author', getter: r => r.Author || '—' },
+        { header: 'Assignee', getter: r => r.Assignee || r.Author || '—' },
         { header: 'Source', getter: r => r.Source || '' },
         { header: 'Backlog Linkage', getter: r => normalizedBacklogLinkage(r) },
         { header: 'Link', getter: r => r.Link || '' },
@@ -438,7 +438,7 @@
       if (key === 'status') return (row.Status || '').trim();
       if (key === 'state') return stateValue(row);
       if (key === 'description') return (row.Description || '').trim();
-      if (key === 'author') return (row.Author || '').trim();
+      if (key === 'assignee') return (row.Assignee || row.Author || '').trim();
       if (key === 'source') return (row.Source || '').trim();
       if (key === 'backlog') return normalizedBacklogLinkage(row);
       return '';
@@ -529,11 +529,11 @@
       const iceboxCount = data.filter(r => (r.Status || '').trim() === 'Icebox').length;
       const discussionCount = data.filter(r => (r.Status || '').trim() === 'Discussion').length;
       const totalIssuesCount = data.filter(countsAsTotalIssue).length;
-      const openCount = data.filter(r => countsAsTotalIssue(r) && stateValue(r) === 'Open').length;
-      const closedCount = totalIssuesCount - openCount;
+      const openCount = data.filter(r => stateValue(r) === 'Open').length;
+      const closedCount = data.length - openCount;
       const missingAssigneeCount = data.filter(r => {
-        const author = (r.Author || '').trim();
-        return !author || author === '—';
+        const assignee = (r.Assignee || r.Author || '').trim();
+        return !assignee || assignee === '—';
       }).length;
       const implementedNoGhCount = data.filter(r => (r.Status || '').trim() === 'Implemented' && (r['Issue/Disc #'] || '').trim() === '—').length;
       const implementedClosedCount = data.filter(r => (r.Status || '').trim() === 'Implemented' && stateValue(r) === 'Closed').length;
@@ -558,7 +558,7 @@
         const status = (r.Status || '').trim();
         if (selectedStatus && status !== selectedStatus) return false;
         if (!text) return true;
-        const hay = [r['Issue/Disc #'], r.Title, r.Description, r.Status, r.Source, r.Labels, r.Author, r['Already In Backlog']]
+        const hay = [r['Issue/Disc #'], r.Title, r.Description, r.Status, r.Source, r.Labels, r.Assignee, r.Author, r['Already In Backlog']]
           .map(x => (x || '').toLowerCase()).join(' | ');
         return hay.includes(text);
       });
@@ -571,7 +571,7 @@
         const statusColFilter = (columnFilters.status.value || '').trim();
         const stateColFilter = (columnFilters.state.value || '').trim();
         const descFilter = (columnFilters.description.value || '').trim().toLowerCase();
-        const authorFilter = (columnFilters.author.value || '').trim().toLowerCase();
+        const assigneeFilter = (columnFilters.assignee.value || '').trim().toLowerCase();
         const sourceFilter = (columnFilters.source.value || '').trim().toLowerCase();
         const backlogFilter = (columnFilters.backlog.value || '').trim().toLowerCase();
         const state = stateValue(r);
@@ -581,7 +581,7 @@
         if (statusColFilter && valueForKey(r, 'status') !== statusColFilter) return false;
         if (stateColFilter && state !== stateColFilter) return false;
         if (descFilter && !valueForKey(r, 'description').toLowerCase().includes(descFilter)) return false;
-        if (authorFilter && !valueForKey(r, 'author').toLowerCase().includes(authorFilter)) return false;
+        if (assigneeFilter && !valueForKey(r, 'assignee').toLowerCase().includes(assigneeFilter)) return false;
         if (sourceFilter && !valueForKey(r, 'source').toLowerCase().includes(sourceFilter)) return false;
         if (backlogFilter && !valueForKey(r, 'backlog').toLowerCase().includes(backlogFilter)) return false;
         return true;
@@ -620,7 +620,7 @@
         const state = stateValue(r);
         const desc = esc(r.Description || '');
         const status = esc(r.Status || '');
-        const author = esc(r.Author || '—');
+        const assignee = esc(r.Assignee || r.Author || '—');
         const backlog = renderBacklogLinkage(r);
         const link = esc(r.Link || '');
         const statusClass = 'status-' + status.replace(/\s+/g, '');
@@ -633,7 +633,7 @@
           <td class="${statusClass}">${status}</td>
           <td>${state}</td>
           <td>${desc || '<span class="small">—</span>'}</td>
-          <td>${author}</td>
+          <td>${assignee}</td>
           <td>${sourceBadge(r.Source || '')}</td>
           <td>${backlog}</td>
         </tr>`;
