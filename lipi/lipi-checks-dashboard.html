@@ -662,7 +662,6 @@
         render();
       });
     });
-    });
     Object.values(columnFilters).forEach(el => {
       const eventName = el.tagName === 'SELECT' ? 'change' : 'input';
       el.addEventListener(eventName, render);
