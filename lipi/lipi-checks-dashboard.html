@@ -406,6 +406,10 @@
       return raw;
     }
 
+    function assigneeValue(row) {
+      return ((row.Assignee || '').toString().trim()) || '—';
+    }
+
     function renderBacklogLinkage(row) {
       const raw = normalizedBacklogLinkage(row);
       let backlogHtml = '';
@@ -573,10 +577,7 @@
       const totalIssuesCount = data.filter(countsAsTotalIssue).length;
       const openCount = data.filter(r => stateValue(r) === 'Open').length;
       const closedCount = data.length - openCount;
-      const missingAssigneeCount = data.filter(r => {
-        const assignee = (r.Assignee || r.Author || '').trim();
-        return !assignee || assignee === '—';
-      }).length;
+      const missingAssigneeCount = data.filter(r => assigneeValue(r) === '—').length;
       const implementedNoGhCount = data.filter(r => (r.Status || '').trim() === 'Implemented' && (r['Issue/Disc #'] || '').trim() === '—').length;
       const implementedClosedCount = data.filter(r => (r.Status || '').trim() === 'Implemented' && stateValue(r) === 'Closed').length;
       const toDevelopCount = data.filter(r => stateValue(r) === 'Open' && normalizedBacklogLinkage(r) === 'Self').length;
