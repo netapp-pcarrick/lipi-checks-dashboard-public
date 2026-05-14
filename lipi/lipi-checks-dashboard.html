@@ -668,15 +668,19 @@
       const hasBacklogIssueLink = /#\d+/.test(backlog);
       const isPartial = /^Partial\b/.test(backlog);
       const hasDevLinks = hasDevelopmentLinks(row);
-      const isYesImplemented = /^Yes → (Implemented|NoPR# NoLink#)\b/.test(backlog);
+      const isYesImplemented = /^Yes → Implemented\b/.test(backlog);
+      const isYesNoPRNoLink = /^Yes → NoPR# NoLink#\b/.test(backlog);
+      const isYesNoPRWithIssues = /^Yes → NoPR# /.test(backlog) && !isYesNoPRNoLink;
       const prOnlyDevelopment = hasDevLinks && hasOnlyPullRequestLinks(row) && !hasBacklogIssueLink;
       let baseRank = 5;
 
       if (backlog === '—') baseRank = 0;
       else if (isYesImplemented) baseRank = 1;
-      else if (hasBacklogIssueLink) baseRank = 2;
-      else if (backlog === 'No' || backlog === 'Self') baseRank = 3;
-      else if (isPartial) baseRank = 4;
+      else if (isYesNoPRNoLink) baseRank = 1.5;
+      else if (isYesNoPRWithIssues) baseRank = 2;
+      else if (hasBacklogIssueLink) baseRank = 3;
+      else if (backlog === 'No' || backlog === 'Self') baseRank = 4;
+      else if (isPartial) baseRank = 5;
 
       if (!hasDevLinks) return baseRank;
       if (prOnlyDevelopment) return 100;
