@@ -73,7 +73,7 @@
       white-space: nowrap;
     }
     .copy-status { min-width: 220px; text-align: left; }
-    table { width: 100%; table-layout: fixed; min-width: 1200px; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    table { width: 100%; table-layout: fixed; min-width: 1550px; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
     thead th { text-align: left; background: #f0eee5; padding: 10px; font-size: .88rem; position: sticky; top: 0; z-index: 1; color: var(--accent); }
     thead tr.filter-row th { background: #f7f5ec; padding: 8px; top: 39px; z-index: 1; color: var(--muted); }
     thead tr.filter-row input, thead tr.filter-row select {
@@ -105,16 +105,15 @@
       color: inherit;
     }
     tbody td { text-align: left; }
-    thead th:nth-child(1), tbody td:nth-child(1) { width: 80px; }
-    thead th:nth-child(2), tbody td:nth-child(2) { width: 220px; }
+    thead th:nth-child(1), tbody td:nth-child(1) { width: 72px; }
+    thead th:nth-child(2), tbody td:nth-child(2) { width: 250px; }
     thead th:nth-child(3), tbody td:nth-child(3) { width: 110px; }
-    thead th:nth-child(4), tbody td:nth-child(4) { width: 80px; }
-    thead th:nth-child(5), tbody td:nth-child(5) { width: 250px; }
-    thead th:nth-child(6), tbody td:nth-child(6) { width: 150px; }
-    thead th:nth-child(7), tbody td:nth-child(7) { width: 220px; }
-    thead th:nth-child(8), tbody td:nth-child(8) {
-      width: 220px;
-    }
+    thead th:nth-child(4), tbody td:nth-child(4) { width: 140px; }
+    thead th:nth-child(5), tbody td:nth-child(5) { width: 90px; }
+    thead th:nth-child(6), tbody td:nth-child(6) { width: 260px; }
+    thead th:nth-child(7), tbody td:nth-child(7) { width: 150px; }
+    thead th:nth-child(8), tbody td:nth-child(8) { width: 210px; }
+    thead th:nth-child(9), tbody td:nth-child(9) { width: 280px; }
     tbody td { padding: 10px; border-top: 1px solid #eceae0; font-size: .9rem; vertical-align: top; overflow-wrap: anywhere; word-break: break-word; }
     tbody tr:hover { background: #faf9f4; }
     .status-Implemented { color: var(--implemented); font-weight: 700; }
@@ -125,7 +124,7 @@
     .src-badge {
       display: inline-block; padding: 2px 7px; border-radius: 6px;
       font-size: .76rem; font-family: monospace; font-weight: 600;
-      white-space: normal;
+      white-space: nowrap;
       overflow-wrap: anywhere;
       word-break: break-word;
     }
@@ -144,7 +143,7 @@
       border: 1px solid #bdd5df;
       text-decoration: none;
       margin: 0 2px;
-      white-space: normal;
+      white-space: nowrap;
       overflow-wrap: anywhere;
       word-break: break-word;
     }
@@ -384,6 +383,46 @@
     "109"
   ]
 };
+    const issueTypeByLink = (() => {
+      const map = {};
+      data.forEach((row) => {
+        const link = (row.Link || '').trim();
+        if (!link) return;
+
+        const explicit = (row['Issue Type'] || '').toString().trim();
+        if (explicit && explicit !== '—') {
+          map[link] = explicit;
+          return;
+        }
+
+        if (/\/discussions\/\d+$/.test(link)) {
+          map[link] = 'Discussion';
+          return;
+        }
+
+        const labels = (row.Labels || '').toString().toLowerCase();
+        if (/\bbug\b/.test(labels) || bugIssueUrls.has(link)) {
+          map[link] = 'Bug';
+          return;
+        }
+        if (/\btask\b/.test(labels)) {
+          map[link] = 'Task';
+          return;
+        }
+        if (/linter requirements/.test(labels)) {
+          map[link] = 'Linter Requirements';
+          return;
+        }
+        if (/\benhancement\b/.test(labels)) {
+          map[link] = 'Enhancement';
+          return;
+        }
+
+        map[link] = (row.Status || '').trim() === 'Discussion' ? 'Discussion' : 'Enhancement';
+      });
+      return map;
+    })();
+    globalThis.issueTypeByLink = issueTypeByLink;
     const metaDiscussionTop = document.getElementById('meta-discussion-top');
     const metaIcebox = document.getElementById('meta-icebox');
     const metaBacklog = document.getElementById('meta-backlog');
@@ -568,7 +607,7 @@
             const label = m ? `PR #${m[1]}` : `Dev ${index + 1}`;
             return `<a class="backlog-badge" href="${esc(url)}" target="_blank" rel="noopener">${label}</a>`;
           }).join(' ');
-          return `${backlogHtml}<br><span class="small">Development:</span> ${devHtml}`;
+          return `${backlogHtml} <span class="small">Development:</span> ${devHtml}`;
         }
       }
 
