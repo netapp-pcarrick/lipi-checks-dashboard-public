@@ -75,6 +75,16 @@
     .table-section {
       position: relative;
     }
+    .fullscreen-actions {
+      display: none;
+      gap: 8px;
+      align-items: center;
+      margin: 0 0 10px;
+      flex-wrap: wrap;
+    }
+    .fullscreen-actions .copy-status {
+      min-width: 220px;
+    }
     .copy-status { min-width: 220px; text-align: left; }
     table { width: 100%; table-layout: fixed; min-width: 1700px; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
     thead th { text-align: left; background: #f0eee5; padding: 10px; font-size: .88rem; position: sticky; top: 0; z-index: 1; color: var(--accent); }
@@ -210,6 +220,10 @@
       min-height: 0;
       max-height: none;
     }
+    .table-section:fullscreen .fullscreen-actions,
+    .table-section.is-fullscreen .fullscreen-actions {
+      display: flex;
+    }
     .table-section:fullscreen table,
     .table-section.is-fullscreen table {
       min-width: max(1700px, 100%);
@@ -231,10 +245,18 @@
       border-radius: 12px;
     }
     .table-section-title {
-      margin: 14px 0 8px;
+      margin: 0;
       font-size: 1rem;
       font-weight: 700;
       color: var(--accent);
+      flex: 0 1 auto;
+    }
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 14px 0 12px;
     }
     a { color: var(--accent); }
     .generated-meta { color: #ffffff; opacity: .92; }
@@ -286,7 +308,13 @@
     </div>
 
     <section id="mainTableSection" class="table-section">
-      <h3 class="table-section-title">All items — Ben and Ivana to triage and prioritize</h3>
+      <div class="table-header">
+        <h3 class="table-section-title">All items — Ben and Ivana to triage and prioritize</h3>
+        <div class="fullscreen-actions" aria-label="Fullscreen actions">
+          <button id="fullScreenBtnFs" class="action-btn" type="button">Full Screen Table</button>
+          <button id="copyVisibleBtnFs" class="action-btn" type="button">Copy Visible Data (Markdown)</button>
+        </div>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -479,7 +507,9 @@
     const metaDiscussion = document.getElementById('meta-discussion');
     const sortButtons = Array.from(document.querySelectorAll('.sort-btn'));
     const copyVisibleBtn = document.getElementById('copyVisibleBtn');
+    const copyVisibleBtnFs = document.getElementById('copyVisibleBtnFs');
     const fullScreenBtn = document.getElementById('fullScreenBtn');
+    const fullScreenBtnFs = document.getElementById('fullScreenBtnFs');
     const mainTableSection = document.getElementById('mainTableSection');
     const copyStatus = document.getElementById('copyStatus');
     const columnFilters = {
@@ -860,10 +890,35 @@
     }
 
     function updateFullScreenButton() {
-      if (!fullScreenBtn || !mainTableSection) return;
+      if (!mainTableSection) return;
       const isFullScreen = document.fullscreenElement === mainTableSection || mainTableSection.classList.contains('is-fullscreen');
-      fullScreenBtn.textContent = isFullScreen ? 'Exit Full Screen' : 'Full Screen Table';
-      fullScreenBtn.setAttribute('aria-pressed', isFullScreen ? 'true' : 'false');
+      [fullScreenBtn, fullScreenBtnFs].forEach(btn => {
+        if (!btn) return;
+        btn.textContent = isFullScreen ? 'Exit Full Screen' : 'Full Screen Table';
+        btn.setAttribute('aria-pressed', isFullScreen ? 'true' : 'false');
+      });
+    }
+
+    async function copyVisibleDataToClipboard() {
+      const payload = buildShareText();
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(payload);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = payload;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+        }
+        copyStatus.textContent = `Copied ${visibleMainRows.length} visible rows with headers.`;
+      } catch (err) {
+        copyStatus.textContent = 'Copy failed. Please retry.';
+      }
     }
 
     async function toggleFullScreenTable() {
@@ -1044,33 +1099,15 @@
       });
     });
     fullScreenBtn?.addEventListener('click', toggleFullScreenTable);
+    fullScreenBtnFs?.addEventListener('click', toggleFullScreenTable);
     document.addEventListener('fullscreenchange', updateFullScreenButton);
     Object.values(columnFilters).forEach(el => {
       const eventName = el.tagName === 'SELECT' ? 'change' : 'input';
       el.addEventListener(eventName, render);
     });
 
-    copyVisibleBtn?.addEventListener('click', async () => {
-      const payload = buildShareText();
-      try {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(payload);
-        } else {
-          const ta = document.createElement('textarea');
-          ta.value = payload;
-          ta.style.position = 'fixed';
-          ta.style.opacity = '0';
-          document.body.appendChild(ta);
-          ta.focus();
-          ta.select();
-          document.execCommand('copy');
-          ta.remove();
-        }
-        copyStatus.textContent = `Copied ${visibleMainRows.length} visible rows with headers.`;
-      } catch (err) {
-        copyStatus.textContent = 'Copy failed. Please retry.';
-      }
-    });
+    copyVisibleBtn?.addEventListener('click', copyVisibleDataToClipboard);
+    copyVisibleBtnFs?.addEventListener('click', copyVisibleDataToClipboard);
 
     updateSortIndicators();
     updateFullScreenButton();
