@@ -512,7 +512,9 @@
     function issueTypeValue(row) {
       const link = (row.Link || '').trim();
       const issueTypeMap = globalThis.issueTypeByLink || {};
-      return (row['Issue Type'] || issueTypeMap[link] || '—').toString().trim();
+      const explicit = (row['Issue Type'] || '').toString().trim();
+      if (explicit && explicit !== '—') return explicit;
+      return (issueTypeMap[link] || '—').toString().trim();
     }
 
     function isDiscussionType(row) {
@@ -746,7 +748,7 @@
       syncSelectOptions(statusFilter, uniqueSelectValues(data, row => (row.Status || '').trim()), 'All statuses');
 
       const total = data.filter(countsAsTotalItem).length;
-      const implementedCount = data.filter(countsAsImplementedMetric).length;
+      const implementedCount = data.filter(r => (r.Status || '').trim() === 'Implemented').length;
       const backlogCount = data.filter(r => (r.Status || '').trim() === 'Backlog').length;
       const iceboxCount = data.filter(r => (r.Status || '').trim() === 'Icebox').length;
       const discussionCount = data.filter(r => (r.Status || '').trim() === 'Discussion').length;
@@ -755,7 +757,7 @@
       const closedCount = data.length - openCount;
       const missingAssigneeCount = data.filter(r => stateValue(r) === 'Open' && assigneeValue(r) === '—').length;
       const implementedNoGhCount = data.filter(r => (r.Status || '').trim() === 'Implemented' && (r['Issue/Disc #'] || '').trim() === '—').length;
-      const implementedClosedCount = data.filter(r => countsAsImplementedMetric(r) && stateValue(r) === 'Closed').length;
+      const implementedClosedCount = data.filter(r => (r.Status || '').trim() === 'Implemented' && stateValue(r) === 'Closed').length;
       const toDevelopCount = data.filter(r => stateValue(r) === 'Open' && normalizedBacklogLinkage(r) === 'Self').length;
       const furtherDiscussionCount = data.filter(r => (r.Status || '').trim() === 'Discussion' && stateValue(r) === 'Open').length;
       metaTotalItems.textContent = String(total);
