@@ -73,7 +73,7 @@
       white-space: nowrap;
     }
     .copy-status { min-width: 220px; text-align: left; }
-    table { width: 100%; table-layout: fixed; min-width: 1720px; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    table { width: 100%; table-layout: fixed; min-width: 1700px; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
     thead th { text-align: left; background: #f0eee5; padding: 10px; font-size: .88rem; position: sticky; top: 0; z-index: 1; color: var(--accent); }
     thead tr.filter-row th { background: #f7f5ec; padding: 8px; top: 39px; z-index: 1; color: var(--muted); }
     thead tr.filter-row input, thead tr.filter-row select {
@@ -106,16 +106,16 @@
     }
     tbody td { text-align: left; }
     thead th:nth-child(1), tbody td:nth-child(1) { width: 72px; }
-    thead th:nth-child(2), tbody td:nth-child(2) { width: 250px; }
-    thead th:nth-child(3), tbody td:nth-child(3) { width: 110px; }
-    thead th:nth-child(4), tbody td:nth-child(4) { width: 140px; }
-    thead th:nth-child(5), tbody td:nth-child(5) { width: 90px; }
-    thead th:nth-child(6), tbody td:nth-child(6) { width: 260px; }
-    thead th:nth-child(7), tbody td:nth-child(7) { width: 170px; }
-    thead th:nth-child(8), tbody td:nth-child(8) { width: 240px; }
-    thead th:nth-child(9), tbody td:nth-child(9) { width: 360px; }
+    thead th:nth-child(2), tbody td:nth-child(2) { width: 310px; }
+    thead th:nth-child(3), tbody td:nth-child(3) { width: 130px; }
+    thead th:nth-child(4), tbody td:nth-child(4) { width: 170px; }
+    thead th:nth-child(5), tbody td:nth-child(5) { width: 100px; }
+    thead th:nth-child(6), tbody td:nth-child(6) { width: 190px; }
+    thead th:nth-child(7), tbody td:nth-child(7) { width: 260px; }
+    thead th:nth-child(8), tbody td:nth-child(8) { width: 420px; }
     tbody td { padding: 10px; border-top: 1px solid #eceae0; font-size: .9rem; vertical-align: top; overflow-wrap: anywhere; word-break: break-word; }
-    tbody td:nth-child(9) { overflow-wrap: normal; word-break: normal; white-space: nowrap; }
+    tbody td:nth-child(3) { white-space: nowrap; }
+    tbody td:nth-child(8) { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
     tbody tr:hover { background: #faf9f4; }
     .status-Implemented { color: var(--implemented); font-weight: 700; }
     .status-Backlog { color: var(--backlog); font-weight: 700; }
@@ -130,6 +130,13 @@
       word-break: normal;
     }
     .src-production { background: #e6f4ee; color: #1f7a4d; }
+    .src-production {
+      max-width: 100%;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      line-height: 1.25;
+    }
     .src-issue      { background: #fff3e0; color: #a15c00; }
     .src-discussion { background: #f3eeff; color: #6d4aa0; }
     .backlog-badge {
@@ -145,10 +152,14 @@
       text-decoration: none;
       margin: 0 2px;
       white-space: nowrap;
-      overflow-wrap: anywhere;
-      word-break: break-word;
+      overflow-wrap: normal;
+      word-break: normal;
     }
     .backlog-badge:hover { background: #dbeaf0; }
+    .backlog-development-row {
+      display: block;
+      margin-top: 4px;
+    }
     .issue-type-badge {
       display: inline-block;
       padding: 1px 7px;
@@ -197,7 +208,7 @@
     .generated-meta { color: #ffffff; opacity: .92; }
     @media (max-width: 760px) {
       .controls { grid-template-columns: 1fr; }
-      thead th:nth-child(5), tbody td:nth-child(5), thead th:nth-child(8), tbody td:nth-child(8) { display: none; }
+      thead th:nth-child(5), tbody td:nth-child(5), thead th:nth-child(7), tbody td:nth-child(7) { display: none; }
     }
   </style>
 </head>
@@ -210,23 +221,23 @@
       <div class="stats">
         <div class="card"><span class="pill pill-total-items">Total Items</span><div id="meta-total-items" class="stat-value">0</div></div>
         <div class="card"><span class="pill" style="background:var(--rejected)">Total Checks</span><div id="meta-total-bugs" class="stat-value">0</div></div>
-        <div class="card"><span class="pill" style="background:var(--discussion)">Discussion</span><div id="meta-discussion-top" class="stat-value">0</div></div>
+        <div class="card"><span class="pill" style="background:var(--implemented)">Implemented</span><div id="meta-implemented" class="stat-value">0</div></div>
         <div class="card"><span class="pill" style="background:var(--icebox)">Icebox</span><div id="meta-icebox" class="stat-value">0</div></div>
         <div class="card"><span class="pill" style="background:var(--backlog)">Backlog</span><div id="meta-backlog" class="stat-value">0</div></div>
-        <div class="card"><span class="pill" style="background:var(--implemented)">Implemented</span><div id="meta-implemented" class="stat-value">0</div></div>
+        <div class="card"><span class="pill" style="background:var(--discussion)">Discussion</span><div id="meta-discussion-top" class="stat-value">0</div></div>
       </div>
       <div class="stats-secondary">
         <div class="card"><div class="small">Open / Closed</div><div id="meta-open-closed" class="stat-value">0 / 0</div></div>
         <div class="card"><div class="small">Open NoAssign</div><div id="meta-missing-assignee" class="stat-value">0</div></div>
-        <div class="card"><div class="small">Requires Further Discussion</div><div id="meta-discussion" class="stat-value">0</div></div>
+        <div class="card"><div class="small">Implemented and Closed</div><div id="meta-implemented-closed" class="stat-value">0</div></div>
         <div class="card"><div class="small">To Develop</div><div id="meta-to-develop" class="stat-value">0</div></div>
         <div class="card"><div class="small">Implemented Rows (No Issue #)</div><div id="meta-no-gh" class="stat-value">0</div></div>
-        <div class="card"><div class="small">Implemented and Closed</div><div id="meta-implemented-closed" class="stat-value">0</div></div>
+        <div class="card"><div class="small">Requires Further Discussion</div><div id="meta-discussion" class="stat-value">0</div></div>
       </div>
     </section>
 
     <div class="controls">
-      <input id="search" placeholder="Search title, description, labels, assignee, issue/discussion #" />
+      <input id="search" placeholder="Search title, labels, assignee, issue/discussion #" />
       <div class="filters">
         <select id="statusFilter">
           <option value="">All statuses</option>
@@ -251,7 +262,6 @@
             <th><button class="sort-btn" data-sort-key="status" aria-label="Sort by Status">Status <span class="sort-indicator">↕</span></button></th>
             <th><button class="sort-btn" data-sort-key="issueType" aria-label="Sort by Issue Type">Issue Type <span class="sort-indicator">↕</span></button></th>
             <th><button class="sort-btn" data-sort-key="state" aria-label="Sort by State">State <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="description" aria-label="Sort by Description">Description <span class="sort-indicator">↕</span></button></th>
             <th><button class="sort-btn" data-sort-key="assignee" aria-label="Sort by Assignee">Assignee <span class="sort-indicator">↕</span></button></th>
             <th><button class="sort-btn" data-sort-key="source" aria-label="Sort by Source">Source <span class="sort-indicator">↕</span></button></th>
             <th><button class="sort-btn" data-sort-key="backlog" aria-label="Sort by Backlog Linkage">Backlog Linkage <span class="sort-indicator">↕</span></button></th>
@@ -277,7 +287,6 @@
                 <option>Closed</option>
               </select>
             </th>
-            <th><input id="filter-description" placeholder="Filter description" /></th>
             <th><input id="filter-assignee" placeholder="Filter assignee" /></th>
             <th><input id="filter-source" placeholder="Filter source" /></th>
             <th><input id="filter-backlog" placeholder="Filter backlog" /></th>
@@ -538,7 +547,6 @@
       status: document.getElementById('filter-status-col'),
       issueType: document.getElementById('filter-issue-type'),
       state: document.getElementById('filter-state-col'),
-      description: document.getElementById('filter-description'),
       assignee: document.getElementById('filter-assignee'),
       source: document.getElementById('filter-source'),
       backlog: document.getElementById('filter-backlog'),
@@ -568,7 +576,6 @@
         { header: 'Status', getter: r => r.Status || '' },
         { header: 'Issue Type', getter: r => issueTypeValue(r) },
         { header: 'State', getter: r => stateValue(r) },
-        { header: 'Description', getter: r => r.Description || '' },
         { header: 'Assignee', getter: r => r.Assignee || r.Author || '—' },
         { header: 'Source', getter: r => r.Source || '' },
         { header: 'Backlog Linkage', getter: r => normalizedBacklogLinkage(r) },
@@ -666,12 +673,17 @@
       const status = (row.Status || '').trim();
       const id = (row['Issue/Disc #'] || '').trim();
       const isDiscussion = status === 'Discussion';
+      const hasDevLinks = hasDevelopmentLinks(row);
 
       // First table should use Self (not No) for self-tracked non-discussion rows.
       if (!isDiscussion) {
         if (raw === 'No') return 'Self';
         if (raw === '—' && /^(Backlog|Icebox)$/.test(status) && /^\d+$/.test(id)) return 'Self';
-        if (raw === '—' && status === 'Implemented') return 'Yes → Implemented';
+        if (/^Yes\s*→\s*(?!Implemented\b)/.test(raw) && !hasDevLinks) {
+          return raw.replace(/^Yes\s*→\s*/, 'Yes → NoPR# ');
+        }
+        if (raw === '—' && status === 'Implemented') return hasDevLinks ? 'Yes → Implemented' : 'Yes → Implemented No#';
+        if (raw === 'Yes → Implemented' && !hasDevLinks) return 'Yes → Implemented No#';
       }
       return raw;
     }
@@ -720,7 +732,7 @@
             const label = m ? `PR #${m[1]}` : `Dev ${index + 1}`;
             return `<a class="backlog-badge" href="${esc(url)}" target="_blank" rel="noopener">${label}</a>`;
           }).join(' ');
-          return `${backlogHtml} <span class="small">Development:</span> ${devHtml}`;
+          return `${backlogHtml}<span class="backlog-development-row"><span class="small">Development:</span> ${devHtml}</span>`;
         }
       }
 
@@ -730,6 +742,17 @@
     function hasDevelopmentLinks(row) {
       const devLinksRaw = (row['Development Links'] || '').toString().trim();
       return Boolean(devLinksRaw && devLinksRaw !== '—');
+    }
+
+    function hasOnlyPullRequestLinks(row) {
+      const devLinksRaw = (row['Development Links'] || '').toString().trim();
+      if (!devLinksRaw || devLinksRaw === '—') return false;
+      const devUrls = devLinksRaw
+        .split(';')
+        .map(link => link.trim())
+        .filter(Boolean);
+      if (!devUrls.length) return false;
+      return devUrls.every(url => /\/pull\/\d+$/.test(url));
     }
 
     function statusSortRank(row) {
@@ -752,13 +775,20 @@
       const backlog = normalizedBacklogLinkage(row);
       const hasBacklogIssueLink = /#\d+/.test(backlog);
       const isPartial = /^Partial\b/.test(backlog);
+      const hasDevLinks = hasDevelopmentLinks(row);
+      const isYesImplemented = /^Yes → Implemented\b/.test(backlog);
+      const prOnlyDevelopment = hasDevLinks && hasOnlyPullRequestLinks(row) && !hasBacklogIssueLink;
+      let baseRank = 5;
 
-      if (backlog === 'No' || backlog === 'Self') return 0;
-      if (isPartial) return 1;
-      if (backlog === '—') return 2;
-      if (hasBacklogIssueLink) return 3;
-      if (backlog === 'Yes → Implemented') return hasDevelopmentLinks(row) ? 5 : 4;
-      return 6;
+      if (backlog === '—') baseRank = 0;
+      else if (isYesImplemented) baseRank = 1;
+      else if (hasBacklogIssueLink) baseRank = 2;
+      else if (backlog === 'No' || backlog === 'Self') baseRank = 3;
+      else if (isPartial) baseRank = 4;
+
+      if (!hasDevLinks) return baseRank;
+      if (prOnlyDevelopment) return 100;
+      return baseRank + 50;
     }
 
     function valueForKey(row, key) {
@@ -767,7 +797,6 @@
       if (key === 'status') return (row.Status || '').trim();
       if (key === 'issueType') return issueTypeValue(row);
       if (key === 'state') return stateValue(row);
-      if (key === 'description') return (row.Description || '').trim();
       if (key === 'assignee') return (row.Assignee || row.Author || '').trim();
       if (key === 'source') return (row.Source || '').trim();
       if (key === 'backlog') return normalizedBacklogLinkage(row);
@@ -867,7 +896,12 @@
       const openCount = data.filter(r => stateValue(r) === 'Open').length;
       const closedCount = data.length - openCount;
       const missingAssigneeCount = data.filter(r => stateValue(r) === 'Open' && assigneeValue(r) === '—').length;
-      const implementedNoGhCount = data.filter(r => (r.Status || '').trim() === 'Implemented' && (r['Issue/Disc #'] || '').trim() === '—').length;
+      const implementedNoGhCount = data.filter(r => {
+        if ((r.Status || '').trim() !== 'Implemented') return false;
+        const hasNoIssueNumber = (r['Issue/Disc #'] || '').trim() === '—';
+        const backlogIsImplemented = normalizedBacklogLinkage(r).startsWith('Yes → Implemented');
+        return hasNoIssueNumber || backlogIsImplemented;
+      }).length;
       const implementedClosedCount = data.filter(r => (r.Status || '').trim() === 'Implemented' && stateValue(r) === 'Closed').length;
       const toDevelopCount = data.filter(r => {
         const status = (r.Status || '').trim();
@@ -893,7 +927,7 @@
         const status = (r.Status || '').trim();
         if (selectedStatus && status !== selectedStatus) return false;
         if (!text) return true;
-        const hay = [r['Issue/Disc #'], r.Title, r.Description, r.Status, issueTypeValue(r), r.Source, r.Labels, r.Assignee, r.Author, r['Already In Backlog']]
+        const hay = [r['Issue/Disc #'], r.Title, r.Status, issueTypeValue(r), r.Source, r.Labels, r.Assignee, r.Author, r['Already In Backlog']]
           .map(x => (x || '').toLowerCase()).join(' | ');
         return hay.includes(text);
       });
@@ -906,7 +940,6 @@
         const statusColFilter = (columnFilters.status.value || '').trim();
         const issueTypeFilter = (columnFilters.issueType.value || '').trim().toLowerCase();
         const stateColFilter = (columnFilters.state.value || '').trim();
-        const descFilter = (columnFilters.description.value || '').trim().toLowerCase();
         const assigneeFilter = (columnFilters.assignee.value || '').trim().toLowerCase();
         const sourceFilter = (columnFilters.source.value || '').trim().toLowerCase();
         const backlogFilter = (columnFilters.backlog.value || '').trim().toLowerCase();
@@ -917,7 +950,6 @@
         if (statusColFilter && valueForKey(r, 'status') !== statusColFilter) return false;
         if (issueTypeFilter && !valueForKey(r, 'issueType').toLowerCase().includes(issueTypeFilter)) return false;
         if (stateColFilter && state !== stateColFilter) return false;
-        if (descFilter && !valueForKey(r, 'description').toLowerCase().includes(descFilter)) return false;
         if (assigneeFilter && !valueForKey(r, 'assignee').toLowerCase().includes(assigneeFilter)) return false;
         if (sourceFilter && !valueForKey(r, 'source').toLowerCase().includes(sourceFilter)) return false;
         if (backlogFilter && !valueForKey(r, 'backlog').toLowerCase().includes(backlogFilter)) return false;
@@ -956,7 +988,6 @@
         const title = esc(r.Title || '');
         const issueType = renderIssueTypeBadge(r);
         const state = stateValue(r);
-        const desc = esc(r.Description || '');
         const status = esc(r.Status || '');
         const assignee = esc(r.Assignee || r.Author || '—');
         const backlog = renderBacklogLinkage(r);
@@ -971,7 +1002,6 @@
           <td class="${statusClass}">${status}</td>
           <td>${issueType}</td>
           <td>${state}</td>
-          <td>${desc || '<span class="small">—</span>'}</td>
           <td>${assignee}</td>
           <td>${sourceBadge(r.Source || '')}</td>
           <td>${backlog}</td>
