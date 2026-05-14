@@ -1017,7 +1017,20 @@
         if (!matchesTextFilter(valueForKey(r, 'id'), idFilter)) return false;
         if (!matchesTextFilter(valueForKey(r, 'title'), titleFilter)) return false;
         if (statusColFilter && valueForKey(r, 'status') !== statusColFilter) return false;
-        if (!matchesTextFilter(valueForKey(r, 'issueType'), issueTypeFilter)) return false;
+        if (issueTypeFilter) {
+          const normalizedFilter = issueTypeFilter.toLowerCase();
+          let negate = false;
+          let needle = normalizedFilter;
+          if (needle.startsWith('!')) {
+            negate = true;
+            needle = needle.slice(1).trim();
+          }
+          if (needle) {
+            const issueTypeValue = valueForKey(r, 'issueType').toLowerCase();
+            const matches = issueTypeValue === needle || issueTypeValue.startsWith(needle + ' ');
+            if ((negate && matches) || (!negate && !matches)) return false;
+          }
+        }
         if (stateColFilter && state !== stateColFilter) return false;
         if (!matchesTextFilter(valueForKey(r, 'assignee'), assigneeFilter)) return false;
         if (!matchesTextFilter(valueForKey(r, 'source'), sourceFilter)) return false;
