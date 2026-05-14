@@ -666,7 +666,7 @@
       const hasBacklogIssueLink = /#\d+/.test(backlog);
       const isPartial = /^Partial\b/.test(backlog);
       const hasDevLinks = hasDevelopmentLinks(row);
-      const isYesImplemented = /^Yes → Implemented\b/.test(backlog);
+      const isYesImplemented = /^Yes → (Implemented|NoPR# NoLink#)\b/.test(backlog);
       const prOnlyDevelopment = hasDevLinks && hasOnlyPullRequestLinks(row) && !hasBacklogIssueLink;
       let baseRank = 5;
 
