@@ -271,7 +271,7 @@
     <section class="hero">
       <h1>Lipi Checks Program Dashboard</h1>
       <p>Shareable inventory view for implemented checks, backlog, icebox, and discussion requirements.</p>
-      <p class="small generated-meta">Generated: 2026-05-14 09:42 UTC | Source: embedded inventory + GitHub GraphQL full data refresh</p>
+      <p class="small generated-meta">Generated: 2026-05-14 21:07 UTC | Source: embedded inventory + GitHub GraphQL full data refresh</p>
       <div class="stats">
         <div class="card"><span class="pill pill-total-items">Total Items</span><div id="meta-total-items" class="stat-value">0</div></div>
         <div class="card"><span class="pill" style="background:var(--rejected)">Total Checks</span><div id="meta-total-bugs" class="stat-value">0</div></div>
@@ -455,45 +455,7 @@
     "109"
   ]
 };
-    const issueTypeByLink = (() => {
-      const map = {};
-      data.forEach((row) => {
-        const link = (row.Link || '').trim();
-        if (!link) return;
-
-        const explicit = (row['Issue Type'] || '').toString().trim();
-        if (explicit && explicit !== '—') {
-          map[link] = explicit;
-          return;
-        }
-
-        if (/\/discussions\/\d+$/.test(link)) {
-          map[link] = 'Discussion';
-          return;
-        }
-
-        const labels = (row.Labels || '').toString().toLowerCase();
-        if (/\bbug\b/.test(labels) || bugIssueUrls.has(link)) {
-          map[link] = 'Bug';
-          return;
-        }
-        if (/\btask\b/.test(labels)) {
-          map[link] = 'Task';
-          return;
-        }
-        if (/linter requirements/.test(labels)) {
-          map[link] = 'Linter Requirements';
-          return;
-        }
-        if (/\benhancement\b/.test(labels)) {
-          map[link] = 'Enhancement';
-          return;
-        }
-
-        map[link] = (row.Status || '').trim() === 'Discussion' ? 'Discussion' : 'Enhancement';
-      });
-      return map;
-    })();
+    const issueTypeByLink = {};
     globalThis.issueTypeByLink = issueTypeByLink;
     const metaDiscussionTop = document.getElementById('meta-discussion-top');
     const metaIcebox = document.getElementById('meta-icebox');
@@ -594,7 +556,15 @@
       const issueTypeMap = globalThis.issueTypeByLink || {};
       const explicit = (row['Issue Type'] || '').toString().trim();
       if (explicit && explicit !== '—') return explicit;
-      return (issueTypeMap[link] || '—').toString().trim();
+      const mapped = (issueTypeMap[link] || '').toString().trim();
+      if (mapped && mapped !== '—') return mapped;
+      if (/\/discussions\/\d+$/.test(link)) return 'Discussion';
+      const labels = (row.Labels || '').toString().toLowerCase();
+      if (/\bbug\b/.test(labels) || bugIssueUrls.has(link)) return 'Bug';
+      if (/\btask\b/.test(labels)) return 'Task';
+      if (/linter requirements/.test(labels)) return 'Linter Requirements';
+      if (/\benhancement\b/.test(labels)) return 'Enhancement';
+      return (row.Status || '').trim() === 'Discussion' ? 'Discussion' : 'Enhancement';
     }
 
     function isDiscussionType(row) {
