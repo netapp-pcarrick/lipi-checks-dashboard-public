@@ -905,7 +905,8 @@
     }
 
     function countsAsTotalItem(row) {
-      return (row.Status || '').trim() === 'Discussion' || countsAsTotalIssue(row);
+      // All rows count as items; filtering by issue type happens elsewhere (e.g., countsAsTotalIssue for metrics)
+      return true;
     }
 
     function isBugType(row) {
