@@ -56,21 +56,75 @@
     .stats-secondary .card:nth-child(4) .small { color: var(--backlog); }
     .stats-secondary .card:nth-child(5) .small { color: var(--implemented); }
     .stats-secondary .card:nth-child(6) .small { color: var(--implemented); }
-    .controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin: 18px 0 12px; }
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) minmax(260px, 420px) auto;
+      gap: 10px;
+      margin: 18px 0 12px;
+      align-items: center;
+    }
+    .controls-title {
+      margin: 0;
+      min-width: 0;
+    }
+    .controls-search {
+      width: 100%;
+      max-width: 420px;
+      justify-self: end;
+    }
     input, select {
       width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
       background: #fff; color: var(--ink); font: inherit;
     }
-    .filters { display:flex; gap:8px; align-items:center; }
+    .filters {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: nowrap;
+      min-width: 0;
+    }
     .action-btn {
-      border: 1px solid var(--line);
+      border: 1px solid rgba(29, 95, 115, 0.35);
       background: #fff;
-      color: var(--ink);
+      color: var(--accent);
       border-radius: 10px;
-      padding: 10px 12px;
+      padding: 9px 12px;
+      min-height: 38px;
       cursor: pointer;
       font: inherit;
+      font-weight: 600;
+      font-size: .86rem;
+      letter-spacing: .2px;
       white-space: nowrap;
+      transition: transform .14s ease, box-shadow .16s ease, background-color .16s ease, border-color .16s ease;
+      box-shadow: 0 2px 8px rgba(19, 66, 79, 0.08);
+    }
+    .action-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(29, 95, 115, 0.55);
+      box-shadow: 0 6px 14px rgba(19, 66, 79, 0.16);
+    }
+    .action-btn:active {
+      transform: translateY(0);
+    }
+    .action-btn:focus-visible {
+      outline: 2px solid #2e7489;
+      outline-offset: 2px;
+    }
+    .action-btn-primary {
+      background: linear-gradient(120deg, #18576a, #2c7287);
+      color: #ffffff;
+      border-color: #1f687d;
+      box-shadow: 0 4px 12px rgba(21, 79, 96, 0.28);
+    }
+    .action-btn-primary:hover {
+      border-color: #154b5b;
+      box-shadow: 0 8px 16px rgba(21, 79, 96, 0.35);
+    }
+    .action-btn-quiet {
+      background: #f6fbfc;
+      color: #134f60;
     }
     .table-section {
       position: relative;
@@ -79,14 +133,20 @@
       display: none;
       gap: 8px;
       align-items: center;
-      margin: 0 0 10px;
       flex-wrap: wrap;
+      flex: 0 0 auto;
     }
     .fullscreen-actions .copy-status {
       min-width: 220px;
     }
-    .copy-status { min-width: 220px; text-align: left; }
-    table { width: 100%; table-layout: fixed; min-width: 1700px; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .copy-status {
+      min-width: 136px;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    table { width: 100%; table-layout: fixed; min-width: 2050px; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
     thead th { text-align: left; background: #f0eee5; padding: 10px; font-size: .88rem; position: sticky; top: 0; z-index: 1; color: var(--accent); }
     thead tr.filter-row th { background: #f7f5ec; padding: 8px; top: 39px; z-index: 1; color: var(--muted); }
     thead tr.filter-row input, thead tr.filter-row select {
@@ -126,9 +186,11 @@
     thead th:nth-child(6), tbody td:nth-child(6) { width: 190px; }
     thead th:nth-child(7), tbody td:nth-child(7) { width: 260px; }
     thead th:nth-child(8), tbody td:nth-child(8) { width: 420px; }
+    thead th:nth-child(9), tbody td:nth-child(9) { width: 360px; }
     tbody td { padding: 10px; border-top: 1px solid #eceae0; font-size: .9rem; vertical-align: top; overflow-wrap: anywhere; word-break: break-word; }
     tbody td:nth-child(3) { white-space: nowrap; }
     tbody td:nth-child(8) { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
+    tbody td:nth-child(9) { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
     tbody tr:hover { background: #faf9f4; }
     .status-Implemented { color: var(--implemented); font-weight: 700; }
     .status-Backlog { color: var(--backlog); font-weight: 700; }
@@ -172,6 +234,18 @@
     .backlog-development-row {
       display: block;
       margin-top: 4px;
+    }
+    .comment-self-ref {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: .72rem;
+      font-weight: 700;
+      line-height: 1.4;
+      background: #dff2e8;
+      color: #1f7a4d;
+      border: 1px solid #bcdcc8;
     }
     .issue-type-badge {
       display: inline-block;
@@ -224,6 +298,10 @@
     .table-section.is-fullscreen .fullscreen-actions {
       display: flex;
     }
+    .table-section:fullscreen .table-header,
+    .table-section.is-fullscreen .table-header {
+      display: flex;
+    }
     .table-section:fullscreen table,
     .table-section.is-fullscreen table {
       min-width: max(1700px, 100%);
@@ -250,18 +328,51 @@
       font-weight: 700;
       color: var(--accent);
       flex: 0 1 auto;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .table-header {
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      margin: 14px 0 12px;
+      flex-wrap: nowrap;
+      margin: 0 0 12px;
+    }
+    .table-header .fullscreen-actions {
+      flex-wrap: nowrap;
+    }
+    .table-header .action-btn {
+      flex: 0 0 auto;
     }
     a { color: var(--accent); }
     .generated-meta { color: #ffffff; opacity: .92; }
     @media (max-width: 760px) {
       .controls { grid-template-columns: 1fr; }
+      .controls-search {
+        max-width: none;
+        justify-self: stretch;
+      }
+      .filters {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+      .copy-status {
+        min-width: 0;
+        width: 100%;
+      }
+      .table-header {
+        flex-wrap: wrap;
+      }
+      .table-section-title {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+      }
+      .table-header .fullscreen-actions {
+        flex-wrap: wrap;
+      }
       thead th:nth-child(5), tbody td:nth-child(5), thead th:nth-child(7), tbody td:nth-child(7) { display: none; }
     }
   </style>
@@ -291,7 +402,8 @@
     </section>
 
     <div class="controls">
-      <input id="search" placeholder="Search title, labels, assignee, issue/discussion #" />
+      <h3 class="table-section-title controls-title">All items — Ben and Ivana to triage and prioritize</h3>
+      <input id="search" class="controls-search" placeholder="Search title, labels" />
       <div class="filters">
         <select id="statusFilter">
           <option value="">All statuses</option>
@@ -301,18 +413,17 @@
           <option>Discussion</option>
           <option>Rejected</option>
         </select>
-        <button id="fullScreenBtn" class="action-btn" type="button">Full Screen Table</button>
-        <button id="copyVisibleBtn" class="action-btn" type="button">Copy Visible Data (Markdown)</button>
+        <button id="fullScreenBtn" class="action-btn action-btn-primary" type="button">Fullscreen</button>
+        <button id="copyVisibleBtn" class="action-btn action-btn-quiet" type="button">Copy Markdown</button>
         <span id="copyStatus" class="small copy-status"></span>
       </div>
     </div>
 
     <section id="mainTableSection" class="table-section">
       <div class="table-header">
-        <h3 class="table-section-title">All items — Ben and Ivana to triage and prioritize</h3>
         <div class="fullscreen-actions" aria-label="Fullscreen actions">
-          <button id="fullScreenBtnFs" class="action-btn" type="button">Full Screen Table</button>
-          <button id="copyVisibleBtnFs" class="action-btn" type="button">Copy Visible Data (Markdown)</button>
+          <button id="fullScreenBtnFs" class="action-btn action-btn-primary" type="button">Fullscreen</button>
+          <button id="copyVisibleBtnFs" class="action-btn action-btn-quiet" type="button">Copy Markdown</button>
         </div>
       </div>
       <div class="table-wrap">
@@ -327,6 +438,7 @@
               <th><button class="sort-btn" data-sort-key="assignee" aria-label="Sort by Assignee">Assignee <span class="sort-indicator">↕</span></button></th>
               <th><button class="sort-btn" data-sort-key="source" aria-label="Sort by Source">Source <span class="sort-indicator">↕</span></button></th>
               <th><button class="sort-btn" data-sort-key="backlog" aria-label="Sort by Backlog Linkage">Backlog Linkage <span class="sort-indicator">↕</span></button></th>
+              <th><button class="sort-btn" data-sort-key="comments" aria-label="Sort by Comments">Comments <span class="sort-indicator">↕</span></button></th>
             </tr>
             <tr class="filter-row">
               <th><input id="filter-id" placeholder="Filter #" /></th>
@@ -352,6 +464,7 @@
               <th><input id="filter-assignee" placeholder="Filter assignee" /></th>
               <th><input id="filter-source" placeholder="Filter source" /></th>
               <th><input id="filter-backlog" placeholder="Filter backlog" /></th>
+              <th><input id="filter-comments" placeholder="Filter comments" /></th>
             </tr>
           </thead>
           <tbody id="rows-main"></tbody>
@@ -590,6 +703,11 @@
       "https://github.com/NetAppDocs/docs-help/discussions/2306": "Linter requirements"
 };
     globalThis.issueTypeByLink = issueTypeByLink;
+    const itemLinkByNumber = new Map(
+      data
+        .map(row => [((row['Issue/Disc #'] || '').toString().trim()), (row.Link || '').toString().trim()])
+        .filter(([number, link]) => /^\d+$/.test(number) && /^https?:\/\//.test(link))
+    );
     const metaDiscussionTop = document.getElementById('meta-discussion-top');
     const metaIcebox = document.getElementById('meta-icebox');
     const metaBacklog = document.getElementById('meta-backlog');
@@ -616,6 +734,7 @@
       assignee: document.getElementById('filter-assignee'),
       source: document.getElementById('filter-source'),
       backlog: document.getElementById('filter-backlog'),
+      comments: document.getElementById('filter-comments'),
     };
     const sortState = { key: '', direction: 'asc' };
     let visibleMainRows = [];
@@ -650,6 +769,7 @@
         { header: 'Assignee', getter: r => r.Assignee || r.Author || '—' },
         { header: 'Source', getter: r => r.Source || '' },
         { header: 'Backlog Linkage', getter: r => normalizedBacklogLinkage(r) },
+        { header: 'Comments', getter: r => commentsValue(r) },
         { header: 'Link', getter: r => r.Link || '' },
         { header: 'Development Links', getter: r => r['Development Links'] || '—' }
       ];
@@ -710,6 +830,65 @@
       return /\/pull\/\d+/.test(devLinks);
     }
 
+    function commentsValue(row) {
+      const primary = (row.Comments || row.Comment || row['Issue Comments'] || row['Comment Summary'] || '').toString().trim();
+      return primary || '—';
+    }
+
+    function isSelfReferencingByComments(row) {
+      const commentText = commentsValue(row);
+      if (!commentText || commentText === '—') return false;
+      const issueId = (row['Issue/Disc #'] || '').toString().trim();
+      const rowLink = (row.Link || '').toString().trim();
+      const text = commentText.toLowerCase();
+
+      if (rowLink && text.includes(rowLink.toLowerCase())) return true;
+      if (/^\d+$/.test(issueId) && new RegExp(`(^|[^\\w])#${issueId}(?!\\d)`, 'i').test(commentText)) return true;
+      if (/^\d+$/.test(issueId) && new RegExp(`/issues/${issueId}(?!\\d)|/discussions/${issueId}(?!\\d)`, 'i').test(commentText)) return true;
+      return false;
+    }
+
+    function hasSelfReferenceFlag(row) {
+      const backlog = normalizedBacklogLinkage(row);
+      return backlog.startsWith('Yes → NoPR# Link#') && isSelfReferencingByComments(row);
+    }
+
+    function linkifyCommentRefs(text) {
+      let html = esc(text).replace(/\r?\n/g, '<br>');
+
+      html = html.replace(
+        /https?:\/\/[^\s<]+/g,
+        (url) => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`
+      );
+
+      html = html.replace(
+        /\b([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)#(\d+)\b/g,
+        (_, owner, repo, n) => {
+          const label = `${owner}/${repo}#${n}`;
+          const url = `https://github.com/${owner}/${repo}/issues/${n}`;
+          return `<a href="${url}" target="_blank" rel="noopener">${label}</a>`;
+        }
+      );
+
+      html = html.replace(/(^|[^/\w])#(\d+)\b/g, (_, prefix, n) => {
+        const linkedItem = itemLinkByNumber.get(n);
+        const url = linkedItem || `https://github.com/NetAppDocOps/jekyll-lipi/issues/${n}`;
+        return `${prefix}<a href="${url}" target="_blank" rel="noopener">#${n}</a>`;
+      });
+
+      return html;
+    }
+
+    function renderCommentsCell(row) {
+      const comments = commentsValue(row);
+      if (comments === '—') return '<span class="small">—</span>';
+
+      const safeComments = linkifyCommentRefs(comments);
+      const shouldFlagSelfRef = hasSelfReferenceFlag(row);
+      const flag = shouldFlagSelfRef ? '<span class="comment-self-ref">Self-reference detected</span>' : '';
+      return `${safeComments}${flag}`;
+    }
+
     function countsAsImplementedMetric(row) {
       if (issueTypeValue(row).toLowerCase() === 'discussion') return false;
       if (hasPullRequestReference(row)) return false;
@@ -760,6 +939,7 @@
     function backlogFilterMetric(row) {
       const backlog = normalizedBacklogLinkage(row);
       const devLinksRaw = (row['Development Links'] || '').toString().trim();
+      const selfRefMetric = hasSelfReferenceFlag(row) ? ' | Self-reference detected' : '';
       const selfDevelopmentAlias = backlog === 'Self NoPR# NoLink#'
         ? ` | Self Development: ${devLinksRaw}`
         : '';
@@ -767,9 +947,9 @@
         ? ` | Development: ${devLinksRaw} | ${backlog} Development: ${devLinksRaw}${selfDevelopmentAlias}`
         : '';
       if (issueTypeValue(row).toLowerCase() === 'discussion' && backlog === 'Yes → NoPR# NoLink#') {
-        return `Discussion → NoLink#${developmentMetric}`;
+        return `Discussion → NoLink#${developmentMetric}${selfRefMetric}`;
       }
-      return `${backlog}${developmentMetric}`;
+      return `${backlog}${developmentMetric}${selfRefMetric}`;
     }
 
     function assigneeValue(row) {
@@ -801,6 +981,7 @@
         backlogHtml = `<span class="small">${esc(raw)}</span>`;
       } else {
         backlogHtml = esc(raw)
+          .replace(/https?:\/\/[^\s<]+/g, (url) => `<a class="backlog-badge" href="${url}" target="_blank" rel="noopener">${url}</a>`)
           .replace(/\b([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)#(\d+)\b/g, (_, repoRef, n) => `<a class="backlog-badge" href="https://github.com/${repoRef}/issues/${n}" target="_blank" rel="noopener">${repoRef}#${n}</a>`)
           .replace(/(^|[^/\w])#(\d+)/g, (_, prefix, n) => `${prefix}<a class="backlog-badge" href="https://github.com/NetAppDocOps/jekyll-lipi/issues/${n}" target="_blank" rel="noopener">#${n}</a>`);
       }
@@ -889,6 +1070,9 @@
       if (key === 'assignee') return (row.Assignee || row.Author || '').trim();
       if (key === 'source') return (row.Source || '').trim();
       if (key === 'backlog') return backlogFilterMetric(row);
+      if (key === 'comments') return hasSelfReferenceFlag(row)
+        ? `${commentsValue(row)} | Self-reference detected`
+        : commentsValue(row);
       return '';
     }
 
@@ -997,11 +1181,10 @@
       const isFullScreen = document.fullscreenElement === mainTableSection || mainTableSection.classList.contains('is-fullscreen');
       [fullScreenBtn, fullScreenBtnFs].forEach(btn => {
         if (!btn) return;
-        btn.textContent = isFullScreen ? 'Exit Full Screen' : 'Full Screen Table';
+        btn.textContent = isFullScreen ? 'Exit Fullscreen' : 'Fullscreen';
         btn.setAttribute('aria-pressed', isFullScreen ? 'true' : 'false');
       });
     }
-
     async function copyVisibleDataToClipboard() {
       const payload = buildShareText();
       try {
@@ -1023,6 +1206,7 @@
         copyStatus.textContent = 'Copy failed. Please retry.';
       }
     }
+
 
     async function toggleFullScreenTable() {
       if (!mainTableSection) return;
@@ -1061,7 +1245,7 @@
       const totalIssuesCount = data.filter(countsAsTotalIssue).length;
       const openCount = data.filter(r => stateValue(r) === 'Open').length;
       const closedCount = data.length - openCount;
-      const missingAssigneeCount = data.filter(r => issueTypeValue(r).toLowerCase() !== 'discussion' && stateValue(r) === 'Open' && assigneeValue(r) === '—').length;
+      const missingAssigneeCount = data.filter(r => issueTypeValue(r).toLowerCase() !== 'linter requirements' && stateValue(r) === 'Open' && assigneeValue(r) === '—').length;
       const implementedNoGhCount = data.filter(r => {
         if ((r.Status || '').trim() !== 'Implemented') return false;
         if (issueTypeValue(r).toLowerCase() === 'discussion') return false;
@@ -1115,6 +1299,7 @@
         const assigneeFilter = (columnFilters.assignee.value || '').trim();
         const sourceFilter = (columnFilters.source.value || '').trim();
         const backlogFilter = (columnFilters.backlog.value || '').trim();
+        const commentsFilter = (columnFilters.comments.value || '').trim();
         const state = stateValue(r);
 
         if (!matchesTextFilter(valueForKey(r, 'id'), idFilter)) return false;
@@ -1138,6 +1323,7 @@
         if (!matchesTextFilter(valueForKey(r, 'assignee'), assigneeFilter)) return false;
         if (!matchesTextFilter(valueForKey(r, 'source'), sourceFilter)) return false;
         if (!matchesTextFilter(valueForKey(r, 'backlog'), backlogFilter)) return false;
+        if (!matchesTextFilter(valueForKey(r, 'comments'), commentsFilter)) return false;
         return true;
       });
 
@@ -1190,6 +1376,7 @@
           <td>${assignee}</td>
           <td>${sourceBadge(r.Source || '')}</td>
           <td>${backlog}</td>
+          <td>${renderCommentsCell(r)}</td>
         </tr>`;
       };
       tbodyMain.innerHTML = mainRows.map(rowHtml).join('');
