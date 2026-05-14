@@ -72,6 +72,9 @@
       font: inherit;
       white-space: nowrap;
     }
+    .table-section {
+      position: relative;
+    }
     .copy-status { min-width: 220px; text-align: left; }
     table { width: 100%; table-layout: fixed; min-width: 1700px; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
     thead th { text-align: left; background: #f0eee5; padding: 10px; font-size: .88rem; position: sticky; top: 0; z-index: 1; color: var(--accent); }
@@ -184,18 +187,48 @@
       overflow: auto;
       border-radius: 12px;
     }
+    .table-section:fullscreen,
+    .table-section.is-fullscreen {
+      background: var(--bg);
+      padding: 24px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .table-section:fullscreen {
+      width: 100%;
+      height: 100%;
+    }
+    .table-section.is-fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+    }
+    .table-section:fullscreen .table-wrap,
+    .table-section.is-fullscreen .table-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: none;
+    }
+    .table-section:fullscreen table,
+    .table-section.is-fullscreen table {
+      min-width: max(1700px, 100%);
+    }
+    .table-section:fullscreen .table-counts,
+    .table-section.is-fullscreen .table-counts {
+      margin-top: 12px;
+      margin-bottom: 0;
+    }
     .table-counts {
-      position: sticky;
-      bottom: 0;
-      margin: 0;
+      margin: 8px 0 0;
       padding: 8px 10px;
       color: var(--muted);
       font-size: .85rem;
       font-weight: 600;
       text-align: center;
-      background: linear-gradient(to top, #f7f5ec 65%, rgba(247,245,236,.9));
-      border-top: 1px solid var(--line);
-      z-index: 3;
+      background: #f7f5ec;
+      border: 1px solid var(--line);
+      border-radius: 12px;
     }
     .table-section-title {
       margin: 14px 0 8px;
@@ -203,7 +236,6 @@
       font-weight: 700;
       color: var(--accent);
     }
-    .footer { margin-top: 10px; color: var(--muted); font-size: .82rem; }
     a { color: var(--accent); }
     .generated-meta { color: #ffffff; opacity: .92; }
     @media (max-width: 760px) {
@@ -229,9 +261,9 @@
       <div class="stats-secondary">
         <div class="card"><div class="small">Open / Closed</div><div id="meta-open-closed" class="stat-value">0 / 0</div></div>
         <div class="card"><div class="small">Open NoAssign</div><div id="meta-missing-assignee" class="stat-value">0</div></div>
-        <div class="card"><div class="small">Implemented and Closed</div><div id="meta-implemented-closed" class="stat-value">0</div></div>
+        <div class="card"><div class="small">Open No Issue# link</div><div id="meta-implemented-closed" class="stat-value">0</div></div>
         <div class="card"><div class="small">To Develop</div><div id="meta-to-develop" class="stat-value">0</div></div>
-        <div class="card"><div class="small">Implemented Rows (No Issue #)</div><div id="meta-no-gh" class="stat-value">0</div></div>
+        <div class="card"><div class="small">Implemented No Issue# link</div><div id="meta-no-gh" class="stat-value">0</div></div>
         <div class="card"><div class="small">Requires Further Discussion</div><div id="meta-discussion" class="stat-value">0</div></div>
       </div>
     </section>
@@ -247,57 +279,59 @@
           <option>Discussion</option>
           <option>Rejected</option>
         </select>
-        <button id="copyVisibleBtn" class="action-btn" type="button">Copy Visible Data (Headers)</button>
+        <button id="fullScreenBtn" class="action-btn" type="button">Full Screen Table</button>
+        <button id="copyVisibleBtn" class="action-btn" type="button">Copy Visible Data (Markdown)</button>
         <span id="copyStatus" class="small copy-status"></span>
       </div>
     </div>
 
-    <h3 class="table-section-title">All items — Ben and Ivana to triage and prioritize</h3>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th><button class="sort-btn" data-sort-key="id" aria-label="Sort by #"># <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="title" aria-label="Sort by Title">Title <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="status" aria-label="Sort by Status">Status <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="issueType" aria-label="Sort by Issue Type">Issue Type <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="state" aria-label="Sort by State">State <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="assignee" aria-label="Sort by Assignee">Assignee <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="source" aria-label="Sort by Source">Source <span class="sort-indicator">↕</span></button></th>
-            <th><button class="sort-btn" data-sort-key="backlog" aria-label="Sort by Backlog Linkage">Backlog Linkage <span class="sort-indicator">↕</span></button></th>
-          </tr>
-          <tr class="filter-row">
-            <th><input id="filter-id" placeholder="Filter #" /></th>
-            <th><input id="filter-title" placeholder="Filter title" /></th>
-            <th>
-              <select id="filter-status-col">
-                <option value="">All</option>
-                <option>Implemented</option>
-                <option>Backlog</option>
-                <option>Icebox</option>
-                <option>Discussion</option>
-                <option>Rejected</option>
-              </select>
-            </th>
-            <th><input id="filter-issue-type" placeholder="Filter issue type" /></th>
-            <th>
-              <select id="filter-state-col">
-                <option value="">All</option>
-                <option>Open</option>
-                <option>Closed</option>
-              </select>
-            </th>
-            <th><input id="filter-assignee" placeholder="Filter assignee" /></th>
-            <th><input id="filter-source" placeholder="Filter source" /></th>
-            <th><input id="filter-backlog" placeholder="Filter backlog" /></th>
-          </tr>
-        </thead>
-        <tbody id="rows-main"></tbody>
-      </table>
+    <section id="mainTableSection" class="table-section">
+      <h3 class="table-section-title">All items — Ben and Ivana to triage and prioritize</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th><button class="sort-btn" data-sort-key="id" aria-label="Sort by #"># <span class="sort-indicator">↕</span></button></th>
+              <th><button class="sort-btn" data-sort-key="title" aria-label="Sort by Title">Title <span class="sort-indicator">↕</span></button></th>
+              <th><button class="sort-btn" data-sort-key="status" aria-label="Sort by Status">Status <span class="sort-indicator">↕</span></button></th>
+              <th><button class="sort-btn" data-sort-key="issueType" aria-label="Sort by Issue Type">Issue Type <span class="sort-indicator">↕</span></button></th>
+              <th><button class="sort-btn" data-sort-key="state" aria-label="Sort by State">State <span class="sort-indicator">↕</span></button></th>
+              <th><button class="sort-btn" data-sort-key="assignee" aria-label="Sort by Assignee">Assignee <span class="sort-indicator">↕</span></button></th>
+              <th><button class="sort-btn" data-sort-key="source" aria-label="Sort by Source">Source <span class="sort-indicator">↕</span></button></th>
+              <th><button class="sort-btn" data-sort-key="backlog" aria-label="Sort by Backlog Linkage">Backlog Linkage <span class="sort-indicator">↕</span></button></th>
+            </tr>
+            <tr class="filter-row">
+              <th><input id="filter-id" placeholder="Filter #" /></th>
+              <th><input id="filter-title" placeholder="Filter title" /></th>
+              <th>
+                <select id="filter-status-col">
+                  <option value="">All</option>
+                  <option>Implemented</option>
+                  <option>Backlog</option>
+                  <option>Icebox</option>
+                  <option>Discussion</option>
+                  <option>Rejected</option>
+                </select>
+              </th>
+              <th><input id="filter-issue-type" placeholder="Filter issue type" /></th>
+              <th>
+                <select id="filter-state-col">
+                  <option value="">All</option>
+                  <option>Open</option>
+                  <option>Closed</option>
+                </select>
+              </th>
+              <th><input id="filter-assignee" placeholder="Filter assignee" /></th>
+              <th><input id="filter-source" placeholder="Filter source" /></th>
+              <th><input id="filter-backlog" placeholder="Filter backlog" /></th>
+            </tr>
+          </thead>
+          <tbody id="rows-main"></tbody>
+        </table>
+      </div>
       <p id="main-row-counts" class="table-counts">Total Rows: 0 | Total Rows Selected: 0</p>
-    </div>
+    </section>
 
-    <p class="footer">Tip: save this HTML and share directly, or publish it via GitHub Pages for a URL-based dashboard.</p>
   </div>
 
   <script>
@@ -445,6 +479,8 @@
     const metaDiscussion = document.getElementById('meta-discussion');
     const sortButtons = Array.from(document.querySelectorAll('.sort-btn'));
     const copyVisibleBtn = document.getElementById('copyVisibleBtn');
+    const fullScreenBtn = document.getElementById('fullScreenBtn');
+    const mainTableSection = document.getElementById('mainTableSection');
     const copyStatus = document.getElementById('copyStatus');
     const columnFilters = {
       id: document.getElementById('filter-id'),
@@ -462,14 +498,19 @@
     const esc = (v) => (v ?? '').toString()
       .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 
-    function tsvCell(value) {
-      return (value ?? '').toString().replace(/\t/g, ' ').replace(/\r?\n/g, ' ').trim();
+    function markdownCell(value) {
+      return (value ?? '').toString()
+        .replace(/\|/g, '\\|')
+        .replace(/\r?\n/g, '<br>')
+        .trim();
     }
 
-    function rowsToTsv(rows, columns) {
-      const lines = [columns.map(c => c.header).join('\t')];
+    function rowsToMarkdown(rows, columns) {
+      const header = `| ${columns.map(c => markdownCell(c.header)).join(' | ')} |`;
+      const separator = `| ${columns.map(() => '---').join(' | ')} |`;
+      const lines = [header, separator];
       rows.forEach(row => {
-        lines.push(columns.map(c => tsvCell(c.getter(row))).join('\t'));
+        lines.push(`| ${columns.map(c => markdownCell(c.getter(row))).join(' | ')} |`);
       });
       return lines.join('\n');
     }
@@ -492,7 +533,8 @@
         'Lipi Checks Program Dashboard',
         '',
         'All items — Ben and Ivana to triage and prioritize',
-        rowsToTsv(visibleMainRows, columns)
+        '',
+        rowsToMarkdown(visibleMainRows, columns)
       ].join('\n');
     }
 
@@ -536,6 +578,7 @@
     }
 
     function countsAsImplementedMetric(row) {
+      if (issueTypeValue(row).toLowerCase() === 'discussion') return false;
       if (hasPullRequestReference(row)) return false;
       const backlog = normalizedBacklogLinkage(row);
       // Exclude rows with external GitHub issue links (owner/repo#NNN pattern)
@@ -568,16 +611,32 @@
       // First table should use Self (not No) for self-tracked non-discussion rows.
       if (!isDiscussion) {
         if (raw === 'No') return 'Self';
+        if (raw === 'Self') return hasDevLinks ? 'Self' : 'Self NoPR# NoLink#';
         if (raw === '—' && /^(Backlog|Icebox)$/.test(status) && /^\d+$/.test(id)) return 'Self';
         // Handle Yes → Implemented variants first (exact match)
         if (raw === 'Yes → Implemented' && !hasDevLinks) return 'Yes → NoPR# NoLink#';
         // Handle other Yes → patterns with no dev links
         if (/^Yes\s*→\s*(?!Implemented\b)/.test(raw) && !hasDevLinks) {
-          return raw.replace(/^Yes\s*→\s*/, 'Yes → NoPR# ');
+          return raw.replace(/^Yes\s*→\s*/, 'Yes → NoPR# Link# ');
         }
         if (raw === '—' && status === 'Implemented') return hasDevLinks ? 'Yes → Implemented' : 'Yes → NoPR# NoLink#';
       }
       return raw;
+    }
+
+    function backlogFilterMetric(row) {
+      const backlog = normalizedBacklogLinkage(row);
+      const devLinksRaw = (row['Development Links'] || '').toString().trim();
+      const selfDevelopmentAlias = backlog === 'Self NoPR# NoLink#'
+        ? ` | Self Development: ${devLinksRaw}`
+        : '';
+      const developmentMetric = devLinksRaw && devLinksRaw !== '—'
+        ? ` | Development: ${devLinksRaw} | ${backlog} Development: ${devLinksRaw}${selfDevelopmentAlias}`
+        : '';
+      if (issueTypeValue(row).toLowerCase() === 'discussion' && backlog === 'Yes → NoPR# NoLink#') {
+        return `Discussion → NoLink#${developmentMetric}`;
+      }
+      return `${backlog}${developmentMetric}`;
     }
 
     function assigneeValue(row) {
@@ -605,7 +664,7 @@
       let backlogHtml = '';
       if (!raw || raw === '—') {
         backlogHtml = '<span class="small">—</span>';
-      } else if (raw === 'No' || raw === 'Self') {
+      } else if (raw === 'No' || raw === 'Self' || raw === 'Self NoPR# NoLink#') {
         backlogHtml = `<span class="small">${esc(raw)}</span>`;
       } else {
         backlogHtml = esc(raw)
@@ -669,17 +728,18 @@
       const isPartial = /^Partial\b/.test(backlog);
       const hasDevLinks = hasDevelopmentLinks(row);
       const isYesImplemented = /^Yes → Implemented\b/.test(backlog);
-      const isYesNoPRNoLink = /^Yes → NoPR# NoLink#\b/.test(backlog);
-      const isYesNoPRWithIssues = /^Yes → NoPR# /.test(backlog) && !isYesNoPRNoLink;
+      const isYesNoPRNoLink = /^Yes → NoPR# NoLink#$/.test(backlog);
+      const isYesNoPRWithLinks = /^Yes → NoPR# Link# /.test(backlog);
+      const isSelfNoPRNoLink = backlog === 'Self NoPR# NoLink#';
       const prOnlyDevelopment = hasDevLinks && hasOnlyPullRequestLinks(row) && !hasBacklogIssueLink;
       let baseRank = 5;
 
       if (backlog === '—') baseRank = 0;
       else if (isYesImplemented) baseRank = 1;
       else if (isYesNoPRNoLink) baseRank = 1.5;
-      else if (isYesNoPRWithIssues) baseRank = 2;
+      else if (isYesNoPRWithLinks) baseRank = 2;
       else if (hasBacklogIssueLink) baseRank = 3;
-      else if (backlog === 'No' || backlog === 'Self') baseRank = 4;
+      else if (backlog === 'No' || backlog === 'Self' || isSelfNoPRNoLink) baseRank = 4;
       else if (isPartial) baseRank = 5;
 
       if (!hasDevLinks) return baseRank;
@@ -695,7 +755,7 @@
       if (key === 'state') return stateValue(row);
       if (key === 'assignee') return (row.Assignee || row.Author || '').trim();
       if (key === 'source') return (row.Source || '').trim();
-      if (key === 'backlog') return normalizedBacklogLinkage(row);
+      if (key === 'backlog') return backlogFilterMetric(row);
       return '';
     }
 
@@ -734,6 +794,26 @@
       }
 
       return 0;
+    }
+
+    function matchesTextFilter(value, filterRaw) {
+      const normalizedFilter = (filterRaw || '').trim().toLowerCase();
+      if (!normalizedFilter) return true;
+
+      let negate = false;
+      let needle = normalizedFilter;
+      if (needle.startsWith('not ')) {
+        negate = true;
+        needle = needle.slice(4).trim();
+      } else if (needle.startsWith('!')) {
+        negate = true;
+        needle = needle.slice(1).trim();
+      }
+
+      if (!needle) return true;
+      const haystack = (value || '').toString().toLowerCase();
+      const matches = haystack.includes(needle);
+      return negate ? !matches : matches;
     }
 
     function uniqueSelectValues(rows, getter) {
@@ -779,6 +859,38 @@
       });
     }
 
+    function updateFullScreenButton() {
+      if (!fullScreenBtn || !mainTableSection) return;
+      const isFullScreen = document.fullscreenElement === mainTableSection || mainTableSection.classList.contains('is-fullscreen');
+      fullScreenBtn.textContent = isFullScreen ? 'Exit Full Screen' : 'Full Screen Table';
+      fullScreenBtn.setAttribute('aria-pressed', isFullScreen ? 'true' : 'false');
+    }
+
+    async function toggleFullScreenTable() {
+      if (!mainTableSection) return;
+      const isApiFullScreen = document.fullscreenElement === mainTableSection;
+      const isFallbackFullScreen = mainTableSection.classList.contains('is-fullscreen');
+
+      try {
+        if (isApiFullScreen) {
+          await document.exitFullscreen();
+        } else if (isFallbackFullScreen) {
+          mainTableSection.classList.remove('is-fullscreen');
+          document.body.style.overflow = '';
+        } else if (mainTableSection.requestFullscreen) {
+          await mainTableSection.requestFullscreen();
+        } else {
+          mainTableSection.classList.add('is-fullscreen');
+          document.body.style.overflow = 'hidden';
+        }
+      } catch (err) {
+        mainTableSection.classList.toggle('is-fullscreen');
+        document.body.style.overflow = mainTableSection.classList.contains('is-fullscreen') ? 'hidden' : '';
+      }
+
+      updateFullScreenButton();
+    }
+
 
     function render() {
       syncSelectOptions(statusFilter, uniqueSelectValues(data, row => (row.Status || '').trim()), 'All statuses');
@@ -794,12 +906,21 @@
       const missingAssigneeCount = data.filter(r => stateValue(r) === 'Open' && assigneeValue(r) === '—').length;
       const implementedNoGhCount = data.filter(r => {
         if ((r.Status || '').trim() !== 'Implemented') return false;
+        if (issueTypeValue(r).toLowerCase() === 'discussion') return false;
         const hasNoIssueNumber = (r['Issue/Disc #'] || '').trim() === '—';
         const backlogIsImplemented = normalizedBacklogLinkage(r).startsWith('Yes → NoPR# NoLink#');
         return hasNoIssueNumber || backlogIsImplemented;
       }).length;
-      const implementedClosedCount = data.filter(r => (r.Status || '').trim() === 'Implemented' && stateValue(r) === 'Closed').length;
-      const toDevelopCount = data.filter(r => stateValue(r) === 'Open' && normalizedBacklogLinkage(r) === 'Self').length;
+      const openNoIssueLinkCount = data.filter(r => {
+        if (issueTypeValue(r).toLowerCase() === 'discussion') return false;
+        if (stateValue(r) !== 'Open') return false;
+        return normalizedBacklogLinkage(r).includes('NoLink#');
+      }).length;
+      const toDevelopCount = data.filter(r => {
+        if (stateValue(r) !== 'Open') return false;
+        const status = (r.Status || '').trim();
+        return status === 'Backlog' || status === 'Icebox';
+      }).length;
       const furtherDiscussionCount = data.filter(r => (r.Status || '').trim() === 'Discussion' && stateValue(r) === 'Open').length;
       metaTotalItems.textContent = String(total);
       metaTotalBugs.textContent = String(totalIssuesCount);
@@ -809,7 +930,7 @@
       metaImplemented.textContent = String(implementedCount);
       metaOpenClosed.textContent = `${openCount} / ${closedCount}`;
       metaToDevelop.textContent = String(toDevelopCount);
-      metaImplementedClosed.textContent = String(implementedClosedCount);
+      metaImplementedClosed.textContent = String(openNoIssueLinkCount);
       metaMissingAssignee.textContent = String(missingAssigneeCount);
       metaNoGh.textContent = String(implementedNoGhCount);
       metaDiscussion.textContent = String(furtherDiscussionCount);
@@ -820,7 +941,7 @@
         const status = (r.Status || '').trim();
         if (selectedStatus && status !== selectedStatus) return false;
         if (!text) return true;
-        const hay = [r['Issue/Disc #'], r.Title, r.Status, issueTypeValue(r), r.Source, r.Labels, r.Assignee, r.Author, r['Already In Backlog']]
+        const hay = [r['Issue/Disc #'], r.Title, r.Status, issueTypeValue(r), r.Source, r.Labels, r.Assignee, r.Author, backlogFilterMetric(r)]
           .map(x => (x || '').toLowerCase()).join(' | ');
         return hay.includes(text);
       });
@@ -828,24 +949,24 @@
       syncFilterSelects(filtered, columnFilters);
 
       const mainRowsFiltered = filtered.filter(r => {
-        const idFilter = (columnFilters.id.value || '').trim().toLowerCase();
-        const titleFilter = (columnFilters.title.value || '').trim().toLowerCase();
+        const idFilter = (columnFilters.id.value || '').trim();
+        const titleFilter = (columnFilters.title.value || '').trim();
         const statusColFilter = (columnFilters.status.value || '').trim();
-        const issueTypeFilter = (columnFilters.issueType.value || '').trim().toLowerCase();
+        const issueTypeFilter = (columnFilters.issueType.value || '').trim();
         const stateColFilter = (columnFilters.state.value || '').trim();
-        const assigneeFilter = (columnFilters.assignee.value || '').trim().toLowerCase();
-        const sourceFilter = (columnFilters.source.value || '').trim().toLowerCase();
-        const backlogFilter = (columnFilters.backlog.value || '').trim().toLowerCase();
+        const assigneeFilter = (columnFilters.assignee.value || '').trim();
+        const sourceFilter = (columnFilters.source.value || '').trim();
+        const backlogFilter = (columnFilters.backlog.value || '').trim();
         const state = stateValue(r);
 
-        if (idFilter && !valueForKey(r, 'id').toLowerCase().includes(idFilter)) return false;
-        if (titleFilter && !valueForKey(r, 'title').toLowerCase().includes(titleFilter)) return false;
+        if (!matchesTextFilter(valueForKey(r, 'id'), idFilter)) return false;
+        if (!matchesTextFilter(valueForKey(r, 'title'), titleFilter)) return false;
         if (statusColFilter && valueForKey(r, 'status') !== statusColFilter) return false;
-        if (issueTypeFilter && !valueForKey(r, 'issueType').toLowerCase().includes(issueTypeFilter)) return false;
+        if (!matchesTextFilter(valueForKey(r, 'issueType'), issueTypeFilter)) return false;
         if (stateColFilter && state !== stateColFilter) return false;
-        if (assigneeFilter && !valueForKey(r, 'assignee').toLowerCase().includes(assigneeFilter)) return false;
-        if (sourceFilter && !valueForKey(r, 'source').toLowerCase().includes(sourceFilter)) return false;
-        if (backlogFilter && !valueForKey(r, 'backlog').toLowerCase().includes(backlogFilter)) return false;
+        if (!matchesTextFilter(valueForKey(r, 'assignee'), assigneeFilter)) return false;
+        if (!matchesTextFilter(valueForKey(r, 'source'), sourceFilter)) return false;
+        if (!matchesTextFilter(valueForKey(r, 'backlog'), backlogFilter)) return false;
         return true;
       });
 
@@ -900,8 +1021,6 @@
           <td>${backlog}</td>
         </tr>`;
       };
-
-
       tbodyMain.innerHTML = mainRows.map(rowHtml).join('');
       mainRowCounts.textContent = `Total Rows: ${data.length} | Total Rows Selected: ${mainRows.length}`;
     }
@@ -924,6 +1043,8 @@
         render();
       });
     });
+    fullScreenBtn?.addEventListener('click', toggleFullScreenTable);
+    document.addEventListener('fullscreenchange', updateFullScreenButton);
     Object.values(columnFilters).forEach(el => {
       const eventName = el.tagName === 'SELECT' ? 'change' : 'input';
       el.addEventListener(eventName, render);
@@ -952,6 +1073,7 @@
     });
 
     updateSortIndicators();
+    updateFullScreenButton();
     render();
   </script>
 </body>
