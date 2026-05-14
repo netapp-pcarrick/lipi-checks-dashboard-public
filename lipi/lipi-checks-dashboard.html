@@ -569,11 +569,13 @@
       if (!isDiscussion) {
         if (raw === 'No') return 'Self';
         if (raw === '—' && /^(Backlog|Icebox)$/.test(status) && /^\d+$/.test(id)) return 'Self';
+        // Handle Yes → Implemented variants first (exact match)
+        if (raw === 'Yes → Implemented' && !hasDevLinks) return 'Yes → NoPR# NoLink#';
+        // Handle other Yes → patterns with no dev links
         if (/^Yes\s*→\s*(?!Implemented\b)/.test(raw) && !hasDevLinks) {
           return raw.replace(/^Yes\s*→\s*/, 'Yes → NoPR# ');
         }
         if (raw === '—' && status === 'Implemented') return hasDevLinks ? 'Yes → Implemented' : 'Yes → NoPR# NoLink#';
-        if (raw === 'Yes → Implemented' && !hasDevLinks) return 'Yes → NoPR# NoLink#';
       }
       return raw;
     }
