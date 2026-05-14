@@ -1027,7 +1027,7 @@
           }
           if (needle) {
             const issueTypeValue = valueForKey(r, 'issueType').toLowerCase();
-            const matches = issueTypeValue === needle || issueTypeValue.startsWith(needle + ' ');
+            const matches = issueTypeValue === needle || issueTypeValue.startsWith(needle);
             if ((negate && matches) || (!negate && !matches)) return false;
           }
         }
