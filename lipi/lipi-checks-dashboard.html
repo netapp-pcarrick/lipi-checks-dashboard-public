@@ -958,7 +958,7 @@
       const totalIssuesCount = data.filter(countsAsTotalIssue).length;
       const openCount = data.filter(r => stateValue(r) === 'Open').length;
       const closedCount = data.length - openCount;
-      const missingAssigneeCount = data.filter(r => (r.Status || '').trim() !== 'Discussion' && stateValue(r) === 'Open' && assigneeValue(r) === '—').length;
+      const missingAssigneeCount = data.filter(r => issueTypeValue(r).toLowerCase() !== 'discussion' && stateValue(r) === 'Open' && assigneeValue(r) === '—').length;
       const implementedNoGhCount = data.filter(r => {
         if ((r.Status || '').trim() !== 'Implemented') return false;
         if (issueTypeValue(r).toLowerCase() === 'discussion') return false;
