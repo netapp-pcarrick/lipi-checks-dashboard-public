@@ -146,7 +146,12 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    table { width: 100%; table-layout: fixed; min-width: 1500px; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    table { width: 100%; table-layout: fixed; min-width: 2050px; border-collapse: collapse; background: #fff; border:1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    /* Hide Assignee (column 6) and Comments (column 9) from public dashboard */
+    thead th:nth-child(6), tbody td:nth-child(6),
+    thead th:nth-child(9), tbody td:nth-child(9) { display: none; }
+    .col-hidden { display: none; }
+    .col-hidden + th:nth-child(n), tbody td:nth-child(6), tbody td:nth-child(9) { /* Columns 6 (Assignee) and 9 (Comments) */ }
     thead th { text-align: left; background: #f0eee5; padding: 10px; font-size: .88rem; position: sticky; top: 0; z-index: 1; color: var(--accent); }
     thead tr.filter-row th { background: #f7f5ec; padding: 8px; top: 39px; z-index: 1; color: var(--muted); }
     thead tr.filter-row input, thead tr.filter-row select {
@@ -183,10 +188,14 @@
     thead th:nth-child(3), tbody td:nth-child(3) { width: 130px; }
     thead th:nth-child(4), tbody td:nth-child(4) { width: 170px; }
     thead th:nth-child(5), tbody td:nth-child(5) { width: 100px; }
-    thead th:nth-child(6), tbody td:nth-child(6) { width: 260px; }
-    thead th:nth-child(7), tbody td:nth-child(7) { width: 420px; }
+    thead th:nth-child(6), tbody td:nth-child(6) { width: 190px; }
+    thead th:nth-child(7), tbody td:nth-child(7) { width: 260px; }
+    thead th:nth-child(8), tbody td:nth-child(8) { width: 420px; }
+    thead th:nth-child(9), tbody td:nth-child(9) { width: 360px; }
     tbody td { padding: 10px; border-top: 1px solid #eceae0; font-size: .9rem; vertical-align: top; overflow-wrap: anywhere; word-break: break-word; }
     tbody td:nth-child(3) { white-space: nowrap; }
+    tbody td:nth-child(8) { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
+    tbody td:nth-child(9) { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
     tbody tr:hover { background: #faf9f4; }
     .status-Implemented { color: var(--implemented); font-weight: 700; }
     .status-Backlog { color: var(--backlog); font-weight: 700; }
@@ -431,8 +440,10 @@
               <th><button class="sort-btn" data-sort-key="status" aria-label="Sort by Status">Status <span class="sort-indicator">↕</span></button></th>
               <th><button class="sort-btn" data-sort-key="issueType" aria-label="Sort by Issue Type">Issue Type <span class="sort-indicator">↕</span></button></th>
               <th><button class="sort-btn" data-sort-key="state" aria-label="Sort by State">State <span class="sort-indicator">↕</span></button></th>
+              <th class="col-hidden"><button class="sort-btn" data-sort-key="assignee" aria-label="Sort by Assignee">Assignee <span class="sort-indicator">↕</span></button></th>
               <th><button class="sort-btn" data-sort-key="source" aria-label="Sort by Source">Source <span class="sort-indicator">↕</span></button></th>
               <th><button class="sort-btn" data-sort-key="backlog" aria-label="Sort by Backlog Linkage">Backlog Linkage <span class="sort-indicator">↕</span></button></th>
+              <th class="col-hidden"><button class="sort-btn" data-sort-key="comments" aria-label="Sort by Comments">Comments <span class="sort-indicator">↕</span></button></th>
             </tr>
             <tr class="filter-row">
               <th><input id="filter-id" placeholder="Filter #" /></th>
@@ -455,8 +466,10 @@
                   <option>Closed</option>
                 </select>
               </th>
+              <th class="col-hidden"><input id="filter-assignee" placeholder="Filter assignee" /></th>
               <th><input id="filter-source" placeholder="Filter source" /></th>
               <th><input id="filter-backlog" placeholder="Filter backlog" /></th>
+              <th class="col-hidden"><input id="filter-comments" placeholder="Filter comments" /></th>
             </tr>
           </thead>
           <tbody id="rows-main"></tbody>
