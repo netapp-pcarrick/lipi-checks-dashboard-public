@@ -766,10 +766,8 @@
         { header: 'Status', getter: r => r.Status || '' },
         { header: 'Issue Type', getter: r => issueTypeValue(r) },
         { header: 'State', getter: r => stateValue(r) },
-        { header: 'Assignee', getter: r => r.Assignee || r.Author || '—' },
         { header: 'Source', getter: r => r.Source || '' },
         { header: 'Backlog Linkage', getter: r => normalizedBacklogLinkage(r) },
-        { header: 'Comments', getter: r => commentsValue(r) },
         { header: 'Link', getter: r => r.Link || '' },
         { header: 'Development Links', getter: r => r['Development Links'] || '—' }
       ];
@@ -777,7 +775,7 @@
       return [
         'Lipi Checks Program Dashboard',
         '',
-        'All items — Ben and Ivana to triage and prioritize',
+        'All items',
         '',
         rowsToMarkdown(visibleMainRows, columns)
       ].join('\n');
